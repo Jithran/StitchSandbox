@@ -3,6 +3,7 @@ import { chartFileName, renderChartPages, type ChartMode } from '../export/chart
 import { exportChartPdf } from '../export/pdf';
 import { usedColors } from '../model/document';
 import { type PatternDocument } from '../model/types';
+import { Modal } from './Modal';
 
 interface Props {
   doc: PatternDocument;
@@ -28,17 +29,16 @@ export function ExportDialog({ doc, onClose }: Props): React.ReactElement {
   );
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal export" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Export chart</h2>
-          <button onClick={onClose}>✕</button>
-        </div>
+    <Modal className="export" onClose={onClose}>
+      <div className="modal-header">
+        <h2>Export chart</h2>
+        <button onClick={onClose}>✕</button>
+      </div>
 
-        {empty ? (
-          <p className="hint">Draw something first — there are no stitches to export.</p>
-        ) : (
-          <>
+      {empty ? (
+        <p className="hint">Draw something first — there are no stitches to export.</p>
+      ) : (
+        <>
             <div className="export-controls">
               <label>
                 Style
@@ -75,7 +75,6 @@ export function ExportDialog({ doc, onClose }: Props): React.ReactElement {
             </div>
           </>
         )}
-      </div>
-    </div>
+    </Modal>
   );
 }

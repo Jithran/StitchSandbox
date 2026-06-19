@@ -4,6 +4,8 @@ import { renderFragmentPreview } from '../engine/renderer';
 import { Viewport } from '../engine/viewport';
 import { textToFragment, TEXT_FONTS } from '../model/textToStitches';
 import { type Fragment } from '../model/transform';
+import { Modal } from './Modal';
+import { NumberField } from './NumberField';
 
 interface Props {
   activeColorCode: string | null;
@@ -47,15 +49,18 @@ export function TextDialog({ activeColorCode, onPlace, onClose }: Props): React.
     }
   }, [frag]);
 
+  const place = () => {
+    if (frag.width > 0) onPlace(frag);
+  };
+
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal text-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>
-            Add text <span className="exp-badge">Experimental</span>
-          </h2>
-          <button onClick={onClose}>✕</button>
-        </div>
+    <Modal className="text-dialog" onClose={onClose} onSubmit={place}>
+      <div className="modal-header">
+        <h2>
+          Add text <span className="exp-badge">Experimental</span>
+        </h2>
+        <button onClick={onClose}>✕</button>
+      </div>
 
         <p className="hint">
           Experimental — rasterizing fonts to stitches isn't perfect; tweak the height and the
@@ -80,13 +85,7 @@ export function TextDialog({ activeColorCode, onPlace, onClose }: Props): React.
           </label>
           <label>
             Height (stitches)
-            <input
-              type="number"
-              min={4}
-              max={120}
-              value={heightCells}
-              onChange={(e) => setHeightCells(clampInt(e.target.value, 4, 120))}
-            />
+            <NumberField value={heightCells} min={4} max={120} onChange={setHeightCells} />
           </label>
         </div>
 
@@ -118,17 +117,10 @@ export function TextDialog({ activeColorCode, onPlace, onClose }: Props): React.
         </p>
 
         <div className="modal-actions">
-          <button className="primary" disabled={frag.width === 0} onClick={() => onPlace(frag)}>
+          <button className="primary" disabled={frag.width === 0} onClick={place}>
             Place
           </button>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
-}
-
-function clampInt(value: string, min: number, max: number): number {
-  const n = Math.round(Number(value));
-  if (Number.isNaN(n)) return min;
-  return Math.max(min, Math.min(max, n));
 }

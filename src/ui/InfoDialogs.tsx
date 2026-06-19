@@ -1,15 +1,16 @@
+import { Modal } from './Modal';
+
 interface Props {
   onClose: () => void;
 }
 
 export function HelpDialog({ onClose }: Props): React.ReactElement {
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal info-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Help</h2>
-          <button onClick={onClose}>✕</button>
-        </div>
+    <Modal className="info-dialog" onClose={onClose}>
+      <div className="modal-header">
+        <h2>Help</h2>
+        <button onClick={onClose}>✕</button>
+      </div>
 
         <div className="info-body">
           <h3>Getting started</h3>
@@ -61,19 +62,17 @@ export function HelpDialog({ onClose }: Props): React.ReactElement {
               Your work also autosaves in the browser.</li>
           </ul>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
 export function AboutDialog({ onClose }: Props): React.ReactElement {
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal info-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>About StitchSandbox</h2>
-          <button onClick={onClose}>✕</button>
-        </div>
+    <Modal className="info-dialog" onClose={onClose}>
+      <div className="modal-header">
+        <h2>About StitchSandbox</h2>
+        <button onClick={onClose}>✕</button>
+      </div>
 
         <div className="info-body">
           <p>
@@ -113,7 +112,6 @@ export function AboutDialog({ onClose }: Props): React.ReactElement {
 
           <p className="info-copyright">© {new Date().getFullYear()} Jithran Sikken</p>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

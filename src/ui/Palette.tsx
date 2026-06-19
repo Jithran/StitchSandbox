@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { colorHex, colorInfo, customCode, searchThreads, type LibraryBrand } from '../data/colors';
 import { EditorEngine, type EditorSnapshot } from '../engine/editor';
+import { Modal } from './Modal';
 
 interface Props {
   engine: EditorEngine;
@@ -54,14 +55,13 @@ function ColorLibrary({ onClose, onPick }: LibraryProps): React.ReactElement {
   const [tab, setTab] = useState<Tab>('DMC');
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal library" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Color library</h2>
-          <button onClick={onClose}>✕</button>
-        </div>
+    <Modal className="library" onClose={onClose}>
+      <div className="modal-header">
+        <h2>Color library</h2>
+        <button onClick={onClose}>✕</button>
+      </div>
 
-        <div className="tabs">
+      <div className="tabs">
           {(['DMC', 'Anchor', 'Cosmo', 'Custom'] as Tab[]).map((t) => (
             <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>
               {t}
@@ -69,13 +69,12 @@ function ColorLibrary({ onClose, onPick }: LibraryProps): React.ReactElement {
           ))}
         </div>
 
-        {tab === 'Custom' ? (
-          <CustomColor onPick={onPick} />
-        ) : (
-          <BrandList brand={tab} onPick={onPick} />
-        )}
-      </div>
-    </div>
+      {tab === 'Custom' ? (
+        <CustomColor onPick={onPick} />
+      ) : (
+        <BrandList brand={tab} onPick={onPick} />
+      )}
+    </Modal>
   );
 }
 
@@ -123,6 +122,7 @@ function BrandList({
 function CustomColor({ onPick }: { onPick: (code: string) => void }): React.ReactElement {
   const [hex, setHex] = useState('#3b82f6');
   const [label, setLabel] = useState('');
+  const add = () => onPick(customCode(hex, label));
 
   return (
     <div className="custom-color">
@@ -139,6 +139,9 @@ function CustomColor({ onPick }: { onPick: (code: string) => void }): React.Reac
             placeholder="e.g. 1 or My Red"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') add();
+            }}
           />
         </label>
       </div>
@@ -146,7 +149,7 @@ function CustomColor({ onPick }: { onPick: (code: string) => void }): React.Reac
         <span className="library-chip" style={{ background: hex }} />
         <span>{hex.toUpperCase()}</span>
       </div>
-      <button className="primary" onClick={() => onPick(customCode(hex, label))}>
+      <button className="primary" onClick={add}>
         Add color
       </button>
     </div>

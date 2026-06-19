@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { LengthUnit } from '../model/types';
+import { Modal } from './Modal';
+import { NumberField } from './NumberField';
 
 interface Props {
   onCreate: (opts: {
@@ -42,7 +44,7 @@ export function NewProjectDialog({ onCreate, onClose }: Props): React.ReactEleme
     setSizeText(text);
     const value = Number(text);
     if (value > 0) {
-      const stitches = clampInt(Math.round(value * perUnit), 1, 1000);
+      const stitches = Math.max(1, Math.min(1000, Math.round(value * perUnit)));
       if (axis === 'w') setWidth(stitches);
       else setHeight(stitches);
     }
@@ -53,122 +55,113 @@ export function NewProjectDialog({ onCreate, onClose }: Props): React.ReactEleme
     return (axis === 'w' ? sizeW : sizeH).toFixed(2);
   };
 
+  const create = () => onCreate({ name: name.trim() || 'Untitled', width, height, count, unit });
+
   return (
-    <div className="modal-backdrop">
-      <div className="modal new-project" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>New pattern</h2>
-          {onClose && <button onClick={onClose}>✕</button>}
-        </div>
-
-        <label>
-          Name
-          <input value={name} onChange={(e) => setName(e.target.value)} />
-        </label>
-
-        <fieldset>
-          <legend>Fabric</legend>
-          <div className="field-row">
-            <label>
-              Count
-              <select value={count} onChange={(e) => setCount(Number(e.target.value))}>
-                {COUNTS.map((c) => (
-                  <option key={c} value={c}>
-                    {c}-count
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Unit
-              <select value={unit} onChange={(e) => setUnit(e.target.value as LengthUnit)}>
-                <option value={LengthUnit.Centimeters}>centimeters</option>
-                <option value={LengthUnit.Inches}>inches</option>
-              </select>
-            </label>
-          </div>
-          <p className="hint">{stitchesPerUnit(count, unit).toFixed(2)} stitches / {unitLabel}</p>
-        </fieldset>
-
-        <fieldset>
-          <legend>Grid size (stitches)</legend>
-          <div className="field-row">
-            <label>
-              Width
-              <input
-                type="number"
-                min={1}
-                max={1000}
-                value={width}
-                onChange={(e) => {
-                  setEditing(null);
-                  setWidth(clampInt(e.target.value, 1, 1000));
-                }}
-              />
-            </label>
-            <label>
-              Height
-              <input
-                type="number"
-                min={1}
-                max={1000}
-                value={height}
-                onChange={(e) => {
-                  setEditing(null);
-                  setHeight(clampInt(e.target.value, 1, 1000));
-                }}
-              />
-            </label>
-          </div>
-          <p className="hint">{(width * height).toLocaleString()} stitches</p>
-        </fieldset>
-
-        <fieldset>
-          <legend>Physical size ({unitLabel})</legend>
-          <div className="field-row">
-            <label>
-              Width
-              <input
-                type="number"
-                min={0}
-                step={0.1}
-                value={sizeValue('w')}
-                onChange={(e) => onSizeChange('w', e.target.value)}
-                onBlur={() => setEditing(null)}
-              />
-            </label>
-            <label>
-              Height
-              <input
-                type="number"
-                min={0}
-                step={0.1}
-                value={sizeValue('h')}
-                onChange={(e) => onSizeChange('h', e.target.value)}
-                onBlur={() => setEditing(null)}
-              />
-            </label>
-          </div>
-          <p className="hint">
-            {sizeW.toFixed(2)} × {sizeH.toFixed(2)} {unitLabel} · rounded to whole stitches
-          </p>
-        </fieldset>
-
-        <div className="modal-actions">
-          <button
-            className="primary"
-            onClick={() => onCreate({ name: name.trim() || 'Untitled', width, height, count, unit })}
-          >
-            Create
-          </button>
-        </div>
+    <Modal className="new-project" onClose={() => onClose?.()} onSubmit={create}>
+      <div className="modal-header">
+        <h2>New pattern</h2>
+        {onClose && <button onClick={onClose}>✕</button>}
       </div>
-    </div>
-  );
-}
 
-function clampInt(value: string | number, min: number, max: number): number {
-  const n = Math.round(Number(value));
-  if (Number.isNaN(n)) return min;
-  return Math.max(min, Math.min(max, n));
+      <label>
+        Name
+        <input value={name} onChange={(e) => setName(e.target.value)} />
+      </label>
+
+      <fieldset>
+        <legend>Fabric</legend>
+        <div className="field-row">
+          <label>
+            Count
+            <select value={count} onChange={(e) => setCount(Number(e.target.value))}>
+              {COUNTS.map((c) => (
+                <option key={c} value={c}>
+                  {c}-count
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Unit
+            <select value={unit} onChange={(e) => setUnit(e.target.value as LengthUnit)}>
+              <option value={LengthUnit.Centimeters}>centimeters</option>
+              <option value={LengthUnit.Inches}>inches</option>
+            </select>
+          </label>
+        </div>
+        <p className="hint">{stitchesPerUnit(count, unit).toFixed(2)} stitches / {unitLabel}</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Grid size (stitches)</legend>
+        <div className="field-row">
+          <label>
+            Width
+            <NumberField
+              value={width}
+              min={1}
+              max={1000}
+              onChange={(n) => {
+                setEditing(null);
+                setWidth(n);
+              }}
+            />
+          </label>
+          <label>
+            Height
+            <NumberField
+              value={height}
+              min={1}
+              max={1000}
+              onChange={(n) => {
+                setEditing(null);
+                setHeight(n);
+              }}
+            />
+          </label>
+        </div>
+        <p className="hint">{(width * height).toLocaleString()} stitches</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Physical size ({unitLabel})</legend>
+        <div className="field-row">
+          <label>
+            Width
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={sizeValue('w')}
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => onSizeChange('w', e.target.value)}
+              onBlur={() => setEditing(null)}
+            />
+          </label>
+          <label>
+            Height
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={sizeValue('h')}
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => onSizeChange('h', e.target.value)}
+              onBlur={() => setEditing(null)}
+            />
+          </label>
+        </div>
+        <p className="hint">
+          {sizeW.toFixed(2)} × {sizeH.toFixed(2)} {unitLabel} · rounded to whole stitches
+        </p>
+      </fieldset>
+
+      <div className="modal-actions">
+        <button className="primary" onClick={create}>
+          Create
+        </button>
+      </div>
+    </Modal>
+  );
 }

@@ -6,6 +6,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+- Dialogs now open with the first field focused and its value selected, close on
+  `Escape`, and carry proper dialog semantics (`role="dialog"`, `aria-modal`).
+
+### Fixed
+- Dialogs no longer close when you drag out of them (e.g. selecting text in a
+  field and releasing the mouse outside the box) — they only close on a genuine
+  backdrop click.
+- Number fields (resize, crop, new pattern, text) can be cleared and typed
+  freely; focusing selects the value, and it only snaps to a valid number when
+  you leave the field instead of fighting you on every keystroke.
+- Pressing `Enter` in a dialog field now applies it (Create / Apply / Crop /
+  Place / add custom color).
+
 ## [0.3.0] - 2026-06-19
 
 ### Added
