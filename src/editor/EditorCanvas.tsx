@@ -28,21 +28,79 @@ export function EditorCanvas({ engine, tool, pasting }: Props): React.ReactEleme
       return [e.clientX - r.left, e.clientY - r.top];
     };
 
+    // Multi-touch state for pinch-to-zoom + two-finger pan.
+    const pointers = new Map<number, { x: number; y: number }>();
+    let pinching = false;
+    let lastDist = 0;
+    let lastMid = { x: 0, y: 0 };
+
+    const twoFingerMetrics = () => {
+      const [a, b] = [...pointers.values()];
+      return {
+        dist: Math.hypot(a.x - b.x, a.y - b.y),
+        mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
+      };
+    };
+
     const onDown = (e: PointerEvent) => {
       // Middle button would otherwise start the OS autoscroll, which makes
       // panning jump around.
       if (e.button === 1) e.preventDefault();
-      canvas.setPointerCapture(e.pointerId);
+      try {
+        canvas.setPointerCapture(e.pointerId);
+      } catch {
+        // Some browsers reject capture for certain pointer types; harmless.
+      }
       const [x, y] = xy(e);
+      pointers.set(e.pointerId, { x, y });
+
+      if (pointers.size >= 2) {
+        // Second finger down: cancel any in-progress stroke and start pinching.
+        if (!pinching) engine.beginPinch();
+        pinching = true;
+        const m = twoFingerMetrics();
+        lastDist = m.dist;
+        lastMid = m.mid;
+        canvas.style.cursor = '';
+        return;
+      }
+
       // Hold Ctrl/Cmd to pan temporarily without switching tools.
       engine.pointerDown(x, y, e.button, e.ctrlKey || e.metaKey);
       if (engine.isPanning()) canvas.style.cursor = 'grabbing';
     };
+
     const onMove = (e: PointerEvent) => {
       const [x, y] = xy(e);
-      engine.pointerMove(x, y);
+      if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x, y });
+
+      if (pinching && pointers.size >= 2) {
+        const m = twoFingerMetrics();
+        const factor = lastDist > 0 ? m.dist / lastDist : 1;
+        engine.pinchZoom(m.mid.x, m.mid.y, factor, m.mid.x - lastMid.x, m.mid.y - lastMid.y);
+        lastDist = m.dist;
+        lastMid = m.mid;
+        return;
+      }
+      if (!pinching) engine.pointerMove(x, y);
     };
-    const onUp = () => {
+
+    const onUp = (e: PointerEvent) => {
+      pointers.delete(e.pointerId);
+      if (pinching) {
+        if (pointers.size === 0) {
+          pinching = false;
+          engine.pointerUp();
+        } else if (pointers.size >= 2) {
+          const m = twoFingerMetrics();
+          lastDist = m.dist;
+          lastMid = m.mid;
+        }
+        // With exactly one finger left we wait for it to lift rather than
+        // resuming a draw stroke.
+        canvas.style.cursor = '';
+        return;
+      }
       engine.pointerUp();
       canvas.style.cursor = '';
     };

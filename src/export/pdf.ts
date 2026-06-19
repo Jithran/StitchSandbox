@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { dmcHex, getDmc } from '../data/dmc';
+import { colorHex as dmcHex, colorInfo } from '../data/colors';
 import {
   Corner,
   Diagonal,
@@ -447,15 +447,15 @@ function drawFlossSection(
       pdf.text('Color', COL.color, cursor.y);
       cursor.y += 16;
     }
-    const dmc = getDmc(u.colorCode);
+    const info = colorInfo(u.colorCode);
     pdf.setFontSize(11);
     pdf.setTextColor(...INK);
     pdf.text(u.symbol, COL.sym, cursor.y, { align: 'center' });
     pdf.setFontSize(9);
     pdf.text(String(strands), COL.strands + 8, cursor.y);
-    pdf.text('DMC', COL.type, cursor.y);
-    pdf.text(u.colorCode, COL.number, cursor.y);
-    pdf.text(truncate(dmc?.name ?? '', 40), COL.color, cursor.y);
+    pdf.text(info.brand, COL.type, cursor.y);
+    pdf.text(info.number, COL.number, cursor.y);
+    pdf.text(truncate(info.name, 38), COL.color, cursor.y);
     pdf.text(String(isBack ? u.backstitches : u.stitches), COL.swatch, cursor.y);
 
     const [r, g, b] = hexToRgb(dmcHex(u.colorCode));

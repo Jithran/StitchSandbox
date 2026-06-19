@@ -12,8 +12,9 @@ can be exported/imported as JSON. No account or server required.
 ### Designing
 - **Fabric & grid setup** — pick the grid size in stitches *and/or* the physical
   size in cm/inch; the two stay in sync through the fabric count.
-- **DMC palette** — full DMC floss library (454 colors), searchable by number or
-  name, with a working palette per pattern.
+- **Color library** — full DMC floss library (454 colors) plus Anchor and Cosmo
+  (colors approximated from DMC equivalents) and custom colors (any hex + label),
+  in a tabbed picker with a per-pattern working palette.
 - **Stitch types** — full, half (`/` and `\`), quarter, three-quarter, and
   backstitch on a half-cell sub-grid (corner-to-corner and edge-midpoints).
 - **Eraser**, **zoom & pan**, and an optional **realistic stitch** render mode.
@@ -76,6 +77,8 @@ make preview    # serve the build on http://localhost:4173
 
 | Shortcut | Action |
 | --- | --- |
+| `1` … `4` | Full / half / quarter / backstitch tool |
+| `E` / `S` / `H` | Eraser / select / pan tool |
 | `F` | Fit pattern to screen |
 | `Ctrl/⌘ + Z` | Undo |
 | `Ctrl/⌘ + Y` / `Ctrl + Shift + Z` | Redo |
@@ -108,4 +111,6 @@ src/
 
 - DMC color data seeded from [`seanockert/rgb-to-dmc`](https://github.com/seanockert/rgb-to-dmc)
   (hex values are recomputed from the RGB channels).
+- DMC↔Anchor mapping from
+  [`cheshire137/cross-stitch-color-conversion`](https://github.com/cheshire137/cross-stitch-color-conversion).
 - Embedded chart font: a subset of **Liberation Sans** (SIL Open Font License 1.1).

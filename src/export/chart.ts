@@ -1,4 +1,4 @@
-import { dmcHex, getDmc } from '../data/dmc';
+import { colorHex as dmcHex, colorInfo } from '../data/colors';
 import { usedColors } from '../model/document';
 import {
   Corner,
@@ -486,7 +486,7 @@ function renderLegendPage(doc: PatternDocument, usage: ColorUsage[]): ChartPage 
   let ry = tableTop;
   ctx.fillText('Symbol', cols.sym, ry + rowH / 2);
   ctx.fillText('Color', cols.swatch, ry + rowH / 2);
-  ctx.fillText('DMC', cols.number, ry + rowH / 2);
+  ctx.fillText('Thread', cols.number, ry + rowH / 2);
   ctx.fillText('Name', cols.name, ry + rowH / 2);
   ctx.textAlign = 'right';
   ctx.fillText('Count', right - 8, ry + rowH / 2);
@@ -497,7 +497,7 @@ function renderLegendPage(doc: PatternDocument, usage: ColorUsage[]): ChartPage 
   ry += rowH;
 
   for (const u of usage) {
-    const dmc = getDmc(u.colorCode);
+    const info = colorInfo(u.colorCode);
     ctx.fillStyle = INK;
     ctx.textAlign = 'center';
     ctx.font = `${Math.round(Math.min(rowH * 0.6, 20))}px sans-serif`;
@@ -511,8 +511,8 @@ function renderLegendPage(doc: PatternDocument, usage: ColorUsage[]): ChartPage 
     ctx.fillStyle = INK;
     ctx.textAlign = 'left';
     ctx.font = '16px sans-serif';
-    ctx.fillText(u.colorCode, cols.number, ry + rowH / 2);
-    ctx.fillText(truncate(dmc?.name ?? '', 40), cols.name, ry + rowH / 2);
+    ctx.fillText(`${info.brand} ${info.number}`, cols.number, ry + rowH / 2);
+    ctx.fillText(truncate(info.name, 36), cols.name, ry + rowH / 2);
     ctx.textAlign = 'right';
     const countText = u.backstitches ? `${u.stitches} +${u.backstitches} bs` : String(u.stitches);
     ctx.fillText(countText, right - 8, ry + rowH / 2);

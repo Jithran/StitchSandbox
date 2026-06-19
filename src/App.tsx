@@ -4,14 +4,27 @@ import { EditorCanvas } from './editor/EditorCanvas';
 import { useEditor } from './editor/useEditor';
 import { physicalSize } from './model/document';
 import { exportToFile, importFromFile } from './model/storage';
+import { ToolType } from './model/types';
 import { CropDialog, ResizeDialog } from './ui/CanvasDialogs';
+import { AboutDialog, HelpDialog } from './ui/InfoDialogs';
 import { NewProjectDialog } from './ui/NewProjectDialog';
 import { Palette } from './ui/Palette';
+import { TextDialog } from './ui/TextDialog';
 import { Toolbar } from './ui/Toolbar';
 
 const ExportDialog = lazy(() =>
   import('./ui/ExportDialog').then((m) => ({ default: m.ExportDialog })),
 );
+
+const TOOL_KEYS: Record<string, ToolType> = {
+  '1': ToolType.Full,
+  '2': ToolType.Half,
+  '3': ToolType.Quarter,
+  '4': ToolType.Backstitch,
+  e: ToolType.Eraser,
+  h: ToolType.Pan,
+  s: ToolType.Select,
+};
 
 export default function App(): React.ReactElement {
   const { engine, snap } = useEditor();
@@ -19,6 +32,9 @@ export default function App(): React.ReactElement {
   const [showExport, setShowExport] = useState(false);
   const [showResize, setShowResize] = useState(false);
   const [showCrop, setShowCrop] = useState(false);
+  const [showText, setShowText] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -38,6 +54,10 @@ export default function App(): React.ReactElement {
       }
       if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey && !isTyping(e.target)) {
         engine.fit();
+      }
+      if (!e.ctrlKey && !e.metaKey && !isTyping(e.target) && !engine.isPasting()) {
+        const tool = TOOL_KEYS[e.key.toLowerCase()];
+        if (tool) engine.setTool(tool);
       }
       if (engine.isPasting() && !isTyping(e.target)) {
         const moves: Record<string, [number, number]> = {
@@ -98,6 +118,10 @@ export default function App(): React.ReactElement {
           {doc.width}×{doc.height} · {doc.count}-count · {size.width.toFixed(1)}×
           {size.height.toFixed(1)} {doc.unit}
         </span>
+        <div className="app-bar-actions">
+          <button onClick={() => setShowHelp(true)}>Help</button>
+          <button onClick={() => setShowAbout(true)}>About</button>
+        </div>
       </header>
 
       <Toolbar
@@ -109,6 +133,7 @@ export default function App(): React.ReactElement {
         onExportChart={() => setShowExport(true)}
         onResize={() => setShowResize(true)}
         onCrop={() => setShowCrop(true)}
+        onText={() => setShowText(true)}
       />
 
       <div className="workspace">
@@ -155,6 +180,20 @@ export default function App(): React.ReactElement {
           }}
         />
       )}
+
+      {showText && (
+        <TextDialog
+          activeColorCode={snap.activeColorCode}
+          onClose={() => setShowText(false)}
+          onPlace={(frag) => {
+            engine.floatFragment(frag);
+            setShowText(false);
+          }}
+        />
+      )}
+
+      {showHelp && <HelpDialog onClose={() => setShowHelp(false)} />}
+      {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
 
       <input
         ref={fileInput}

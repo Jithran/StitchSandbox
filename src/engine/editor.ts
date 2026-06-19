@@ -1,4 +1,4 @@
-import { dmcHex } from '../data/dmc';
+import { colorHex as dmcHex } from '../data/colors';
 import {
   addPaletteColor,
   cellKey,
@@ -332,6 +332,29 @@ export class EditorEngine {
     this.requestRender();
   }
 
+  /** Abort the active single-pointer gesture so a second touch can pinch/pan
+   *  without leaving a stray stitch behind. */
+  beginPinch(): void {
+    if (this.gesture === Gesture.Draw) {
+      const before = this.history.discardLast();
+      if (before) this.doc = before;
+    }
+    this.gesture = Gesture.None;
+    this.backstitchStart = null;
+    this.backstitchEnd = null;
+    this.selectStart = null;
+    this.pasteGrab = null;
+    this.lastPainted = '';
+    this.requestRender();
+    this.emit();
+  }
+
+  pinchZoom(centerX: number, centerY: number, factor: number, panX: number, panY: number): void {
+    this.view.zoomAt(centerX, centerY, factor);
+    this.view.panBy(panX, panY);
+    this.requestRender();
+  }
+
   // --- history -----------------------------------------------------------
 
   undo(): void {
@@ -396,6 +419,14 @@ export class EditorEngine {
     const frag = extractFragment(this.doc, this.selection);
     this.clipboard = frag;
     this.startFloat(frag, this.selection.c0, this.selection.r0, { ...this.selection });
+  }
+
+  /** Drop an externally-built fragment (e.g. rasterized text) into the floating
+   *  placement flow, centered on the current view. */
+  floatFragment(frag: Fragment): void {
+    if (frag.width === 0 || frag.height === 0) return;
+    const center = this.view.screenToCell(this.cssW / 2, this.cssH / 2);
+    this.startFloat(frag, Math.round(center.x - frag.width / 2), Math.round(center.y - frag.height / 2), null);
   }
 
   private startFloat(frag: Fragment, col: number, row: number, srcRect: Rect | null): void {

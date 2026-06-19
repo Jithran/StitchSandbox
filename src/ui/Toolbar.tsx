@@ -1,5 +1,26 @@
+import { type ReactNode } from 'react';
 import { EditorEngine, type EditorSnapshot } from '../engine/editor';
 import { Diagonal, ToolType } from '../model/types';
+
+function EraserIcon(): React.ReactElement {
+  return (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
+      <path d="M22 21H7" />
+      <path d="m5 11 9 9" />
+    </svg>
+  );
+}
 
 interface Props {
   engine: EditorEngine;
@@ -10,17 +31,17 @@ interface Props {
   onExportChart: () => void;
   onResize: () => void;
   onCrop: () => void;
+  onText: () => void;
 }
 
-const TOOLS: Array<{ tool: ToolType; label: string; title: string }> = [
-  { tool: ToolType.Full, label: '■', title: 'Full stitch' },
-  { tool: ToolType.Half, label: '◣', title: 'Half stitch' },
-  { tool: ToolType.Quarter, label: '¼', title: 'Quarter stitch' },
-  { tool: ToolType.ThreeQuarter, label: '¾', title: 'Three-quarter stitch' },
-  { tool: ToolType.Backstitch, label: '╲', title: 'Backstitch' },
-  { tool: ToolType.Eraser, label: '⌫', title: 'Eraser' },
-  { tool: ToolType.Pan, label: '✋', title: 'Pan' },
-  { tool: ToolType.Select, label: '⬚', title: 'Select (rectangle)' },
+const TOOLS: Array<{ tool: ToolType; label: ReactNode; title: string; key: string }> = [
+  { tool: ToolType.Full, label: '■', title: 'Full stitch', key: '1' },
+  { tool: ToolType.Half, label: '◣', title: 'Half stitch', key: '2' },
+  { tool: ToolType.Quarter, label: '¼', title: 'Quarter stitch', key: '3' },
+  { tool: ToolType.Backstitch, label: '╲', title: 'Backstitch', key: '4' },
+  { tool: ToolType.Eraser, label: <EraserIcon />, title: 'Eraser', key: 'E' },
+  { tool: ToolType.Pan, label: '✋', title: 'Pan', key: 'H' },
+  { tool: ToolType.Select, label: '⬚', title: 'Select (rectangle)', key: 'S' },
 ];
 
 export function Toolbar({
@@ -32,6 +53,7 @@ export function Toolbar({
   onExportChart,
   onResize,
   onCrop,
+  onText,
 }: Props): React.ReactElement {
   return (
     <div className="toolbar">
@@ -46,7 +68,7 @@ export function Toolbar({
         {TOOLS.map((t) => (
           <button
             key={t.tool}
-            title={t.title}
+            title={`${t.title} (${t.key})`}
             className={snap.tool === t.tool ? 'active' : ''}
             onClick={() => engine.setTool(t.tool)}
           >
@@ -145,6 +167,7 @@ export function Toolbar({
       <div className="toolbar-group" title="Canvas size">
         <button onClick={onResize} title="Resize canvas">Resize…</button>
         <button onClick={onCrop} title="Crop to design">Crop…</button>
+        <button onClick={onText} title="Add text as stitches">Text…</button>
       </div>
     </div>
   );

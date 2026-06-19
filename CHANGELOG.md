@@ -6,6 +6,31 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-19
+
+### Added
+- Color brands in a tabbed color library: **DMC**, **Anchor** and **Cosmo**
+  (numbers with colors approximated from their DMC equivalents) and **Custom**
+  (pick any hex with a color picker and give it a number/label). Existing DMC
+  patterns keep working.
+- Help and About dialogs (top-right of the header). About credits Jithran Sikken
+  and shows the version.
+- Keyboard shortcuts for tools: `1` full, `2` half, `3` quarter, `4` backstitch,
+  `E` eraser, `S` select, `H` pan (shown in the button tooltips). New eraser
+  icon, distinct from delete.
+- Text to stitches (experimental): type text, pick a font, height, bold and
+  optional half-stitch edge smoothing, preview it live, then place it as a
+  floating fragment to position and confirm. Glyphs are rasterized to full
+  stitches with half stitches on the diagonal edges.
+- Mobile / touch support: two-finger pinch-to-zoom and pan, and a responsive
+  layout (compact toolbar with larger touch targets, the palette as a
+  horizontal strip). Single-finger draws; a second finger cancels an in-progress
+  stroke so pinching never leaves a stray stitch.
+
+### Removed
+- The three-quarter stitch tool is no longer in the toolbar (existing patterns
+  that use it still render and export).
+
 ## [0.2.0] - 2026-06-19
 
 ### Added
@@ -55,6 +80,7 @@ PDF export.
   legend page, and backstitch drawn on the chart.
 - In-app chart preview before download.
 
-[Unreleased]: https://github.com/Jithran/StitchSandbox/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Jithran/StitchSandbox/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Jithran/StitchSandbox/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Jithran/StitchSandbox/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Jithran/StitchSandbox/releases/tag/v0.1.0

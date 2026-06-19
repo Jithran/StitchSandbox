@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { dmcHex, getDmc, searchDmc } from '../data/dmc';
+import { colorHex, colorInfo, customCode, searchThreads, type LibraryBrand } from '../data/colors';
 import { EditorEngine, type EditorSnapshot } from '../engine/editor';
 
 interface Props {
@@ -19,34 +19,31 @@ export function Palette({ engine, snap }: Props): React.ReactElement {
       </div>
 
       <div className="palette-swatches">
-        {palette.length === 0 && <p className="palette-empty">Add DMC colors to start.</p>}
+        {palette.length === 0 && <p className="palette-empty">Add colors to start.</p>}
         {palette.map((code) => {
-          const dmc = getDmc(code);
+          const info = colorInfo(code);
           return (
             <button
               key={code}
               className={`swatch ${snap.activeColorCode === code ? 'active' : ''}`}
-              style={{ background: dmcHex(code) }}
-              title={dmc ? `DMC ${dmc.code} — ${dmc.name}` : code}
+              style={{ background: colorHex(code) }}
+              title={`${info.brand} ${info.number}${info.name ? ` — ${info.name}` : ''}`}
               onClick={() => engine.setActiveColor(code)}
             >
-              <span className="swatch-code">{code}</span>
+              <span className="swatch-code">{info.number}</span>
             </button>
           );
         })}
       </div>
 
       {libraryOpen && (
-        <ColorLibrary
-          onClose={() => setLibraryOpen(false)}
-          onPick={(code) => {
-            engine.setActiveColor(code);
-          }}
-        />
+        <ColorLibrary onClose={() => setLibraryOpen(false)} onPick={(code) => engine.setActiveColor(code)} />
       )}
     </div>
   );
 }
+
+type Tab = LibraryBrand | 'Custom';
 
 interface LibraryProps {
   onClose: () => void;
@@ -54,39 +51,104 @@ interface LibraryProps {
 }
 
 function ColorLibrary({ onClose, onPick }: LibraryProps): React.ReactElement {
-  const [query, setQuery] = useState('');
-  const results = useMemo(() => searchDmc(query), [query]);
+  const [tab, setTab] = useState<Tab>('DMC');
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal library" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>DMC color library</h2>
+          <h2>Color library</h2>
           <button onClick={onClose}>✕</button>
         </div>
-        <input
-          autoFocus
-          placeholder="Search by number or name…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <div className="library-grid">
-          {results.map((c) => (
-            <button
-              key={c.code}
-              className="library-swatch"
-              title={`DMC ${c.code} — ${c.name}`}
-              onClick={() => onPick(c.code)}
-            >
-              <span className="library-chip" style={{ background: c.hex }} />
-              <span className="library-meta">
-                <strong>{c.code}</strong>
-                <em>{c.name}</em>
-              </span>
+
+        <div className="tabs">
+          {(['DMC', 'Anchor', 'Cosmo', 'Custom'] as Tab[]).map((t) => (
+            <button key={t} className={tab === t ? 'active' : ''} onClick={() => setTab(t)}>
+              {t}
             </button>
           ))}
         </div>
+
+        {tab === 'Custom' ? (
+          <CustomColor onPick={onPick} />
+        ) : (
+          <BrandList brand={tab} onPick={onPick} />
+        )}
       </div>
+    </div>
+  );
+}
+
+function BrandList({
+  brand,
+  onPick,
+}: {
+  brand: LibraryBrand;
+  onPick: (code: string) => void;
+}): React.ReactElement {
+  const [query, setQuery] = useState('');
+  const results = useMemo(() => searchThreads(brand, query), [brand, query]);
+
+  return (
+    <>
+      <input
+        autoFocus
+        placeholder="Search by number or name…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      {brand !== 'DMC' && (
+        <p className="hint">{brand} colors are approximated from their DMC equivalents.</p>
+      )}
+      <div className="library-grid">
+        {results.map((c) => (
+          <button
+            key={c.code}
+            className="library-swatch"
+            title={`${c.brand} ${c.number} — ${c.name}`}
+            onClick={() => onPick(c.code)}
+          >
+            <span className="library-chip" style={{ background: c.hex }} />
+            <span className="library-meta">
+              <strong>{c.number}</strong>
+              <em>{c.name}</em>
+            </span>
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function CustomColor({ onPick }: { onPick: (code: string) => void }): React.ReactElement {
+  const [hex, setHex] = useState('#3b82f6');
+  const [label, setLabel] = useState('');
+
+  return (
+    <div className="custom-color">
+      <div className="custom-row">
+        <input
+          type="color"
+          className="color-input"
+          value={hex}
+          onChange={(e) => setHex(e.target.value)}
+        />
+        <label>
+          Number / label
+          <input
+            placeholder="e.g. 1 or My Red"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
+        </label>
+      </div>
+      <div className="custom-preview">
+        <span className="library-chip" style={{ background: hex }} />
+        <span>{hex.toUpperCase()}</span>
+      </div>
+      <button className="primary" onClick={() => onPick(customCode(hex, label))}>
+        Add color
+      </button>
     </div>
   );
 }

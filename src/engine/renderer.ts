@@ -1,4 +1,4 @@
-import { dmcHex } from '../data/dmc';
+import { colorHex as dmcHex } from '../data/colors';
 import { parseCellKey } from '../model/document';
 import { type Fragment } from '../model/transform';
 import {

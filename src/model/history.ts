@@ -43,6 +43,11 @@ export class History {
     return next;
   }
 
+  /** Drop the most recent recorded state without touching the redo stack. */
+  discardLast(): PatternDocument | null {
+    return this.past.pop() ?? null;
+  }
+
   clear(): void {
     this.past = [];
     this.future = [];
