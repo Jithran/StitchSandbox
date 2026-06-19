@@ -34,7 +34,7 @@ import {
   type PatternDocument,
   type StitchPart,
 } from '../model/types';
-import { render } from './renderer';
+import { render, renderFragmentPreview } from './renderer';
 import { cornerFromFraction, diagonalForCorner, snapNode } from './stitches';
 import { Viewport } from './viewport';
 
@@ -49,6 +49,7 @@ export interface EditorSnapshot {
   name: string;
   hasSelection: boolean;
   hasClipboard: boolean;
+  isPasting: boolean;
 }
 
 type Listener = (snap: EditorSnapshot) => void;
@@ -59,6 +60,7 @@ enum Gesture {
   Pan,
   Backstitch,
   Select,
+  PasteDrag,
 }
 
 export class EditorEngine {
@@ -88,6 +90,8 @@ export class EditorEngine {
   private selectStart: { c: number; r: number } | null = null;
   private selectMoved = false;
   private clipboard: Fragment | null = null;
+  private pasting: { frag: Fragment; col: number; row: number; srcRect: Rect | null } | null = null;
+  private pasteGrab: { dc: number; dr: number } | null = null;
 
   private listeners = new Set<Listener>();
 
@@ -152,6 +156,7 @@ export class EditorEngine {
       name: this.doc.name,
       hasSelection: this.selection !== null,
       hasClipboard: this.clipboard !== null,
+      isPasting: this.pasting !== null,
     };
   }
 
@@ -174,9 +179,63 @@ export class EditorEngine {
       });
       this.drawBackstitchPreview();
       this.drawSelection();
+      this.drawPastePreview();
       this.view.originX = realOriginX;
       this.view.originY = realOriginY;
     });
+  }
+
+  /** Centre of the confirm (checkmark) badge in screen pixels, or null. */
+  private pasteBadge(): { x: number; y: number; r: number } | null {
+    if (!this.pasting) return null;
+    const br = this.view.cellToScreen(
+      this.pasting.col + this.pasting.frag.width,
+      this.pasting.row + this.pasting.frag.height,
+    );
+    return { x: br.x, y: br.y, r: Math.max(11, this.view.scale * 0.5) };
+  }
+
+  private drawPastePreview(): void {
+    if (!this.ctx || !this.pasting) return;
+    const ctx = this.ctx;
+    const { frag, col, row, srcRect } = this.pasting;
+
+    // For a cut/move, visually hide the source region (doc is untouched until commit).
+    if (srcRect) {
+      const a = this.view.cellToScreen(srcRect.c0, srcRect.r0);
+      const b = this.view.cellToScreen(srcRect.c1, srcRect.r1);
+      ctx.save();
+      ctx.fillStyle = '#fbfaf6';
+      ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
+      ctx.restore();
+    }
+
+    renderFragmentPreview(ctx, frag, this.view, col, row, this.realistic, 0.85);
+
+    const a = this.view.cellToScreen(col, row);
+    const b = this.view.cellToScreen(col + frag.width, row + frag.height);
+    ctx.save();
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 3]);
+    ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
+    ctx.setLineDash([]);
+
+    const badge = this.pasteBadge();
+    if (badge) {
+      ctx.beginPath();
+      ctx.arc(badge.x, badge.y, badge.r, 0, Math.PI * 2);
+      ctx.fillStyle = '#22a559';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(badge.x - badge.r * 0.4, badge.y);
+      ctx.lineTo(badge.x - badge.r * 0.1, badge.y + badge.r * 0.35);
+      ctx.lineTo(badge.x + badge.r * 0.45, badge.y - badge.r * 0.35);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   private drawSelection(): void {
@@ -325,17 +384,71 @@ export class EditorEngine {
     this.emit();
   }
 
+  /** Start a floating paste of the clipboard that the user can position. */
   paste(): void {
     if (!this.clipboard) return;
-    this.history.push(clone(this.doc));
-    const at = this.selection ?? { c0: 0, r0: 0, c1: 0, r1: 0 };
-    stampFragment(this.doc, this.clipboard, at.c0, at.r0);
-    this.selection = {
-      c0: at.c0,
-      r0: at.r0,
-      c1: Math.min(at.c0 + this.clipboard.width, this.doc.width),
-      r1: Math.min(at.r0 + this.clipboard.height, this.doc.height),
+    this.startFloat(this.clipboard, this.selection?.c0 ?? 0, this.selection?.r0 ?? 0, null);
+  }
+
+  /** Cut the selection: float it for repositioning; the source is removed on commit. */
+  cutSelection(): void {
+    if (!this.selection) return;
+    const frag = extractFragment(this.doc, this.selection);
+    this.clipboard = frag;
+    this.startFloat(frag, this.selection.c0, this.selection.r0, { ...this.selection });
+  }
+
+  private startFloat(frag: Fragment, col: number, row: number, srcRect: Rect | null): void {
+    this.selection = null;
+    this.pasting = {
+      frag,
+      col: this.clampPasteCol(col, frag.width),
+      row: this.clampPasteRow(row, frag.height),
+      srcRect,
     };
+    this.requestRender();
+    this.emit();
+  }
+
+  private clampPasteCol(col: number, w: number): number {
+    return clampInt(col, 0, Math.max(0, this.doc.width - w));
+  }
+
+  private clampPasteRow(row: number, h: number): number {
+    return clampInt(row, 0, Math.max(0, this.doc.height - h));
+  }
+
+  isPasting(): boolean {
+    return this.pasting !== null;
+  }
+
+  movePaste(dc: number, dr: number): void {
+    if (!this.pasting) return;
+    this.pasting.col = this.clampPasteCol(this.pasting.col + dc, this.pasting.frag.width);
+    this.pasting.row = this.clampPasteRow(this.pasting.row + dr, this.pasting.frag.height);
+    this.requestRender();
+  }
+
+  commitPaste(): void {
+    if (!this.pasting) return;
+    const { frag, col, row, srcRect } = this.pasting;
+    this.history.push(clone(this.doc));
+    if (srcRect) clearRegion(this.doc, srcRect);
+    stampFragment(this.doc, frag, col, row);
+    this.pasting = null;
+    this.selection = {
+      c0: col,
+      r0: row,
+      c1: Math.min(col + frag.width, this.doc.width),
+      r1: Math.min(row + frag.height, this.doc.height),
+    };
+    this.requestRender();
+    this.emit();
+  }
+
+  cancelPaste(): void {
+    if (!this.pasting) return;
+    this.pasting = null;
     this.requestRender();
     this.emit();
   }
@@ -401,6 +514,28 @@ export class EditorEngine {
       return;
     }
 
+    if (this.pasting) {
+      const badge = this.pasteBadge();
+      if (badge && Math.hypot(px - badge.x, py - badge.y) <= badge.r + 3) {
+        this.commitPaste();
+        return;
+      }
+      this.gesture = Gesture.PasteDrag;
+      const cell = this.cellAt(px, py);
+      const { frag, col, row } = this.pasting;
+      const inside =
+        cell.c >= col && cell.c < col + frag.width && cell.r >= row && cell.r < row + frag.height;
+      if (inside) {
+        this.pasteGrab = { dc: cell.c - col, dr: cell.r - row };
+      } else {
+        this.pasting.col = this.clampPasteCol(cell.c, frag.width);
+        this.pasting.row = this.clampPasteRow(cell.r, frag.height);
+        this.pasteGrab = { dc: 0, dr: 0 };
+        this.requestRender();
+      }
+      return;
+    }
+
     if (this.tool === ToolType.Backstitch) {
       const node = this.snapNodeAt(px, py);
       if (!node) return;
@@ -443,7 +578,18 @@ export class EditorEngine {
       case Gesture.Select:
         this.updateSelection(px, py);
         break;
+      case Gesture.PasteDrag:
+        this.dragPaste(px, py);
+        break;
     }
+  }
+
+  private dragPaste(px: number, py: number): void {
+    if (!this.pasting || !this.pasteGrab) return;
+    const cell = this.cellAt(px, py);
+    this.pasting.col = this.clampPasteCol(cell.c - this.pasteGrab.dc, this.pasting.frag.width);
+    this.pasting.row = this.clampPasteRow(cell.r - this.pasteGrab.dr, this.pasting.frag.height);
+    this.requestRender();
   }
 
   pointerUp(): void {
@@ -459,6 +605,7 @@ export class EditorEngine {
     this.backstitchStart = null;
     this.backstitchEnd = null;
     this.selectStart = null;
+    this.pasteGrab = null;
     this.emit();
   }
 

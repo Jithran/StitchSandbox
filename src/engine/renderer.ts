@@ -1,5 +1,6 @@
 import { dmcHex } from '../data/dmc';
 import { parseCellKey } from '../model/document';
+import { type Fragment } from '../model/transform';
 import {
   Corner,
   Diagonal,
@@ -52,6 +53,36 @@ export function render(
   drawBackstitches(ctx, doc, view);
 
   if (opts.showGrid) drawGrid(ctx, doc, view);
+}
+
+/** Draws a detached fragment at (atCol,atRow) — used for the floating paste preview. */
+export function renderFragmentPreview(
+  ctx: CanvasRenderingContext2D,
+  frag: Fragment,
+  view: Viewport,
+  atCol: number,
+  atRow: number,
+  realistic: boolean,
+  alpha: number,
+): void {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  for (const [key, parts] of Object.entries(frag.cells)) {
+    const [lc, lr] = parseCellKey(key);
+    drawCell(ctx, view, atCol + lc, atRow + lr, parts, realistic);
+  }
+  ctx.lineCap = 'round';
+  ctx.lineWidth = Math.max(1.5, view.scale * 0.14);
+  for (const seg of frag.backstitches) {
+    const a = view.cellToScreen(atCol + seg.x1, atRow + seg.y1);
+    const b = view.cellToScreen(atCol + seg.x2, atRow + seg.y2);
+    ctx.strokeStyle = dmcHex(seg.colorCode);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 function drawCell(

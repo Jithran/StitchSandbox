@@ -91,7 +91,10 @@ export function Toolbar({
           <button disabled={!snap.hasSelection} onClick={() => engine.copySelection()} title="Copy (Ctrl+C)">
             ⧉
           </button>
-          <button disabled={!snap.hasClipboard} onClick={() => engine.paste()} title="Paste (Ctrl+V)">
+          <button disabled={!snap.hasSelection} onClick={() => engine.cutSelection()} title="Cut & move (Ctrl+X)">
+            ✂
+          </button>
+          <button disabled={!snap.hasClipboard} onClick={() => engine.paste()} title="Paste — then position and confirm (Ctrl+V)">
             ▣
           </button>
           <button disabled={!snap.hasSelection} onClick={() => engine.deleteSelection()} title="Delete (Del)">

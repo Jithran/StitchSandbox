@@ -6,6 +6,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-19
+
+### Added
+- Floating paste: pasted (or cut) content shows as a positionable preview with a
+  confirm badge. Nudge it with the arrow keys or drag it with the mouse, then
+  commit with `Enter` or the green checkmark, or cancel with `Esc`.
+- Cut (`Ctrl/⌘ + X`) to move a selection — the source is removed only once the
+  move is confirmed.
+
+### Changed
+- Paste no longer drops content at the top-left immediately; it starts the
+  floating preview so you choose where it lands.
+
 ## [0.1.0] - 2026-06-19
 
 Initial release: a working cross-stitch editor with Pattern Keeper-compatible
@@ -42,5 +55,6 @@ PDF export.
   legend page, and backstitch drawn on the chart.
 - In-app chart preview before download.
 
-[Unreleased]: https://github.com/Jithran/StitchSandbox/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Jithran/StitchSandbox/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Jithran/StitchSandbox/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Jithran/StitchSandbox/releases/tag/v0.1.0

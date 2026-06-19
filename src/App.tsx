@@ -39,8 +39,33 @@ export default function App(): React.ReactElement {
       if (e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.metaKey && !isTyping(e.target)) {
         engine.fit();
       }
+      if (engine.isPasting() && !isTyping(e.target)) {
+        const moves: Record<string, [number, number]> = {
+          ArrowLeft: [-1, 0],
+          ArrowRight: [1, 0],
+          ArrowUp: [0, -1],
+          ArrowDown: [0, 1],
+        };
+        if (moves[e.key]) {
+          e.preventDefault();
+          engine.movePaste(...moves[e.key]);
+          return;
+        }
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          engine.commitPaste();
+          return;
+        }
+        if (e.key === 'Escape') {
+          engine.cancelPaste();
+          return;
+        }
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && !isTyping(e.target)) {
         engine.copySelection();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x' && !isTyping(e.target)) {
+        engine.cutSelection();
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v' && !isTyping(e.target)) {
         engine.paste();
@@ -89,7 +114,7 @@ export default function App(): React.ReactElement {
       <div className="workspace">
         <Palette engine={engine} snap={snap} />
         <div className="canvas-host">
-          <EditorCanvas engine={engine} tool={snap.tool} />
+          <EditorCanvas engine={engine} tool={snap.tool} pasting={snap.isPasting} />
         </div>
       </div>
 

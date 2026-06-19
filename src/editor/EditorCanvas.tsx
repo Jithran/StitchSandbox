@@ -5,12 +5,13 @@ import { ToolType } from '../model/types';
 interface Props {
   engine: EditorEngine;
   tool: ToolType;
+  pasting: boolean;
 }
 
-export function EditorCanvas({ engine, tool }: Props): React.ReactElement {
+export function EditorCanvas({ engine, tool, pasting }: Props): React.ReactElement {
   const ref = useRef<HTMLCanvasElement>(null);
 
-  const baseCursor = tool === ToolType.Pan ? 'grab' : 'crosshair';
+  const baseCursor = pasting ? 'move' : tool === ToolType.Pan ? 'grab' : 'crosshair';
 
   useEffect(() => {
     const canvas = ref.current;
