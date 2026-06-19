@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import './App.css';
+import { colorHex } from './data/colors';
 import { EditorCanvas } from './editor/EditorCanvas';
 import { useEditor } from './editor/useEditor';
 import { physicalSize } from './model/document';
@@ -9,6 +10,7 @@ import { CropDialog, ResizeDialog } from './ui/CanvasDialogs';
 import { AboutDialog, HelpDialog } from './ui/InfoDialogs';
 import { NewProjectDialog } from './ui/NewProjectDialog';
 import { Palette } from './ui/Palette';
+import { SelectionMenu } from './ui/SelectionMenu';
 import { TextDialog } from './ui/TextDialog';
 import { Toolbar } from './ui/Toolbar';
 
@@ -35,6 +37,7 @@ export default function App(): React.ReactElement {
   const [showText, setShowText] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -139,9 +142,24 @@ export default function App(): React.ReactElement {
       <div className="workspace">
         <Palette engine={engine} snap={snap} />
         <div className="canvas-host">
-          <EditorCanvas engine={engine} tool={snap.tool} pasting={snap.isPasting} />
+          <EditorCanvas
+            engine={engine}
+            tool={snap.tool}
+            pasting={snap.isPasting}
+            onContextMenu={(x, y) => setMenu({ x, y })}
+          />
         </div>
       </div>
+
+      {menu && (
+        <SelectionMenu
+          engine={engine}
+          x={menu.x}
+          y={menu.y}
+          fillColor={snap.activeColorCode ? colorHex(snap.activeColorCode) : null}
+          onClose={() => setMenu(null)}
+        />
+      )}
 
       {showNew && (
         <NewProjectDialog

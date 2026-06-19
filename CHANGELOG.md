@@ -6,11 +6,30 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-06-20
+
+### Added
+- Column and row rulers along the top and left of the editor canvas, with
+  zoom-adaptive numbering, so you can read positions while drawing.
+- Right-click context menu on a selection: copy, duplicate, cut & move, mirror,
+  rotate, fill with the active color, and delete.
+- Many more fonts for text to stitches (Arial, Helvetica, Verdana, Tahoma,
+  Trebuchet, Georgia, Times, Garamond, Courier, Impact, Comic Sans, Brush
+  Script, …).
+
 ### Changed
+- Much better half-stitch rasterization for text: half stitches now only land on
+  genuinely diagonal edges, with the correct orientation and filled corner.
+  Straight (vertical/horizontal) edges stay clean full stitches instead of being
+  littered with wrong-way half stitches.
+- A selection now dims the rest of the canvas so it stands out.
+- Refreshed, darker UI theme.
 - Dialogs now open with the first field focused and its value selected, close on
   `Escape`, and carry proper dialog semantics (`role="dialog"`, `aria-modal`).
 
 ### Fixed
+- The palette no longer shows a stray double scrollbar when you hover a color
+  swatch.
 - Dialogs no longer close when you drag out of them (e.g. selecting text in a
   field and releasing the mouse outside the box) — they only close on a genuine
   backdrop click.
@@ -94,7 +113,8 @@ PDF export.
   legend page, and backstitch drawn on the chart.
 - In-app chart preview before download.
 
-[Unreleased]: https://github.com/Jithran/StitchSandbox/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Jithran/StitchSandbox/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/Jithran/StitchSandbox/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Jithran/StitchSandbox/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Jithran/StitchSandbox/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Jithran/StitchSandbox/releases/tag/v0.1.0

@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { colorHex as dmcHex, colorInfo } from '../data/colors';
+import { halfCentroidUnit, halfLineUnit, halfTriangleUnit } from '../engine/stitches';
 import {
   Corner,
   Diagonal,
@@ -203,7 +204,11 @@ function fillStitch(pdf: jsPDF, x: number, y: number, s: number, part: StitchPar
     case StitchKind.Full:
       pdf.rect(x, y, s, s, 'F');
       break;
-    case StitchKind.Half:
+    case StitchKind.Half: {
+      const t = halfTriangleUnit(part).map(([fx, fy]) => p(fx, fy));
+      pdf.triangle(t[0][0], t[0][1], t[1][0], t[1][1], t[2][0], t[2][1], 'F');
+      break;
+    }
     case StitchKind.ThreeQuarter: {
       const t =
         part.diagonal === Diagonal.Backslash
@@ -240,10 +245,9 @@ function drawPartialEdge(pdf: jsPDF, x: number, y: number, s: number, part: Stit
   if (part.kind === StitchKind.Quarter) {
     const [fx, fy] = quarterCornerPoint(part.corner ?? Corner.TopLeft);
     pdf.line(x + fx * s, y + fy * s, x + 0.5 * s, y + 0.5 * s);
-  } else if (part.diagonal === Diagonal.Backslash) {
-    pdf.line(x, y, x + s, y + s);
   } else {
-    pdf.line(x, y + s, x + s, y);
+    const [[ax, ay], [bx, by]] = halfLineUnit(part);
+    pdf.line(x + ax * s, y + ay * s, x + bx * s, y + by * s);
   }
 }
 
@@ -264,7 +268,10 @@ function symbolAnchor(part: StitchPart): { cx: number; cy: number; scale: number
   switch (part.kind) {
     case StitchKind.Full:
       return { cx: 0.5, cy: 0.52, scale: 0.82 };
-    case StitchKind.Half:
+    case StitchKind.Half: {
+      const [cx, cy] = halfCentroidUnit(part);
+      return { cx, cy, scale: 0.5 };
+    }
     case StitchKind.ThreeQuarter:
       return part.diagonal === Diagonal.Backslash
         ? { cx: 0.34, cy: 0.66, scale: 0.5 }

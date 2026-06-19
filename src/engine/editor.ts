@@ -34,7 +34,7 @@ import {
   type PatternDocument,
   type StitchPart,
 } from '../model/types';
-import { render, renderFragmentPreview } from './renderer';
+import { render, renderFragmentPreview, renderRulers } from './renderer';
 import { cornerFromFraction, diagonalForCorner, snapNode } from './stitches';
 import { Viewport } from './viewport';
 
@@ -89,6 +89,7 @@ export class EditorEngine {
   private selection: Rect | null = null;
   private selectStart: { c: number; r: number } | null = null;
   private selectMoved = false;
+  private justSelected = false;
   private clipboard: Fragment | null = null;
   private pasting: { frag: Fragment; col: number; row: number; srcRect: Rect | null } | null = null;
   private pasteGrab: { dc: number; dr: number } | null = null;
@@ -180,6 +181,7 @@ export class EditorEngine {
       this.drawBackstitchPreview();
       this.drawSelection();
       this.drawPastePreview();
+      if (this.showGrid) renderRulers(this.ctx, this.doc, this.view, this.cssW, this.cssH);
       this.view.originX = realOriginX;
       this.view.originY = realOriginY;
     });
@@ -240,17 +242,24 @@ export class EditorEngine {
 
   private drawSelection(): void {
     if (!this.ctx || !this.selection) return;
+    const ctx = this.ctx;
     const a = this.view.cellToScreen(this.selection.c0, this.selection.r0);
     const b = this.view.cellToScreen(this.selection.c1, this.selection.r1);
-    this.ctx.save();
-    this.ctx.fillStyle = 'rgba(59, 130, 246, 0.14)';
-    this.ctx.fillRect(a.x, a.y, b.x - a.x, b.y - a.y);
-    this.ctx.strokeStyle = '#3b82f6';
-    this.ctx.lineWidth = 1.5;
-    this.ctx.setLineDash([5, 3]);
-    this.ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
-    this.ctx.setLineDash([]);
-    this.ctx.restore();
+    const W = this.cssW;
+    const H = this.cssH;
+    ctx.save();
+    // Dim everything outside the selection so it pops.
+    ctx.fillStyle = 'rgba(18, 18, 22, 0.5)';
+    ctx.fillRect(0, 0, W, a.y);
+    ctx.fillRect(0, b.y, W, H - b.y);
+    ctx.fillRect(0, a.y, a.x, b.y - a.y);
+    ctx.fillRect(b.x, a.y, W - b.x, b.y - a.y);
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 3]);
+    ctx.strokeRect(a.x, a.y, b.x - a.x, b.y - a.y);
+    ctx.setLineDash([]);
+    ctx.restore();
   }
 
   private drawBackstitchPreview(): void {
@@ -500,6 +509,52 @@ export class EditorEngine {
     this.emit();
   }
 
+  /** Returns (and clears) whether a drag just produced a fresh selection, so
+   *  the UI can pop the context menu right after selecting. */
+  takeJustSelected(): boolean {
+    const v = this.justSelected;
+    this.justSelected = false;
+    return v;
+  }
+
+  /** True if a screen point falls inside the current selection rectangle. */
+  pointInSelection(px: number, py: number): boolean {
+    if (!this.selection) return false;
+    const c = this.view.screenToCell(px, py);
+    return (
+      c.x >= this.selection.c0 &&
+      c.x < this.selection.c1 &&
+      c.y >= this.selection.r0 &&
+      c.y < this.selection.r1
+    );
+  }
+
+  /** Fill every cell in the selection with a full stitch in the active color. */
+  fillSelection(): void {
+    if (!this.selection || !this.activeColorCode) return;
+    this.history.push(clone(this.doc));
+    const r = this.selection;
+    for (let row = r.r0; row < r.r1; row++) {
+      for (let col = r.c0; col < r.c1; col++) {
+        if (inBounds(this.doc, col, row)) {
+          this.doc.cells[cellKey(col, row)] = [
+            { kind: StitchKind.Full, colorCode: this.activeColorCode },
+          ];
+        }
+      }
+    }
+    this.requestRender();
+    this.emit();
+  }
+
+  /** Float a copy of the selection (original stays) for positioning. */
+  duplicateSelection(): void {
+    if (!this.selection) return;
+    const frag = extractFragment(this.doc, this.selection);
+    this.clipboard = frag;
+    this.startFloat(frag, this.selection.c0 + 1, this.selection.r0 + 1, null);
+  }
+
   mirrorSelectionH(): void {
     this.transformSelection(mirrorFragmentH);
   }
@@ -632,6 +687,9 @@ export class EditorEngine {
       this.selection = null;
       this.requestRender();
     }
+    // A drag that produced a selection signals the UI to open the context menu.
+    this.justSelected =
+      this.gesture === Gesture.Select && this.selectMoved && this.selection !== null;
     this.gesture = Gesture.None;
     this.backstitchStart = null;
     this.backstitchEnd = null;

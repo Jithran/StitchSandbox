@@ -1,4 +1,5 @@
 import { colorHex as dmcHex, colorInfo } from '../data/colors';
+import { halfCentroidUnit, halfLineUnit, halfTriangleUnit } from '../engine/stitches';
 import { usedColors } from '../model/document';
 import {
   Corner,
@@ -176,6 +177,7 @@ function cellPolygon(part: StitchPart): Array<[number, number]> {
     case StitchKind.Full:
       return [[0, 0], [1, 0], [1, 1], [0, 1]];
     case StitchKind.Half:
+      return halfTriangleUnit(part);
     case StitchKind.ThreeQuarter:
       return part.diagonal === Diagonal.Backslash
         ? [[0, 0], [1, 1], [0, 1]]
@@ -202,7 +204,10 @@ function symbolAnchor(part: StitchPart): { cx: number; cy: number; scale: number
   switch (part.kind) {
     case StitchKind.Full:
       return { cx: 0.5, cy: 0.5, scale: 0.82 };
-    case StitchKind.Half:
+    case StitchKind.Half: {
+      const [cx, cy] = halfCentroidUnit(part);
+      return { cx, cy, scale: 0.5 };
+    }
     case StitchKind.ThreeQuarter:
       return part.diagonal === Diagonal.Backslash
         ? { cx: 0.34, cy: 0.64, scale: 0.5 }
@@ -267,12 +272,10 @@ function drawPartialEdge(
     const [fx, fy] = quarterCornerPoint(part.corner ?? Corner.TopLeft);
     ctx.moveTo(x + fx * s, y + fy * s);
     ctx.lineTo(x + 0.5 * s, y + 0.5 * s);
-  } else if (part.diagonal === Diagonal.Backslash) {
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + s, y + s);
   } else {
-    ctx.moveTo(x, y + s);
-    ctx.lineTo(x + s, y);
+    const [[ax, ay], [bx, by]] = halfLineUnit(part);
+    ctx.moveTo(x + ax * s, y + ay * s);
+    ctx.lineTo(x + bx * s, y + by * s);
   }
   ctx.stroke();
 }

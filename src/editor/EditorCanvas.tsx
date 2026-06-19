@@ -6,10 +6,15 @@ interface Props {
   engine: EditorEngine;
   tool: ToolType;
   pasting: boolean;
+  onContextMenu: (x: number, y: number) => void;
 }
 
-export function EditorCanvas({ engine, tool, pasting }: Props): React.ReactElement {
+export function EditorCanvas({ engine, tool, pasting, onContextMenu }: Props): React.ReactElement {
   const ref = useRef<HTMLCanvasElement>(null);
+  const menuRef = useRef(onContextMenu);
+  useEffect(() => {
+    menuRef.current = onContextMenu;
+  }, [onContextMenu]);
 
   const baseCursor = pasting ? 'move' : tool === ToolType.Pan ? 'grab' : 'crosshair';
 
@@ -43,6 +48,8 @@ export function EditorCanvas({ engine, tool, pasting }: Props): React.ReactEleme
     };
 
     const onDown = (e: PointerEvent) => {
+      // Right button is reserved for the context menu — never draw/select with it.
+      if (e.button === 2) return;
       // Middle button would otherwise start the OS autoscroll, which makes
       // panning jump around.
       if (e.button === 1) e.preventDefault();
@@ -103,6 +110,7 @@ export function EditorCanvas({ engine, tool, pasting }: Props): React.ReactEleme
       }
       engine.pointerUp();
       canvas.style.cursor = '';
+      if (engine.takeJustSelected()) menuRef.current(e.clientX, e.clientY);
     };
     const onLeave = () => {
       if (!engine.isPanning()) canvas.style.cursor = '';
@@ -113,7 +121,13 @@ export function EditorCanvas({ engine, tool, pasting }: Props): React.ReactEleme
       engine.view.zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.12 : 1 / 1.12);
       engine.requestRender();
     };
-    const onContext = (e: Event) => e.preventDefault();
+    const onContext = (e: MouseEvent) => {
+      e.preventDefault();
+      const r = canvas.getBoundingClientRect();
+      if (engine.pointInSelection(e.clientX - r.left, e.clientY - r.top)) {
+        menuRef.current(e.clientX, e.clientY);
+      }
+    };
 
     canvas.addEventListener('pointerdown', onDown);
     canvas.addEventListener('pointermove', onMove);

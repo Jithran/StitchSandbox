@@ -8,7 +8,7 @@ import {
   type PatternDocument,
   type StitchPart,
 } from '../model/types';
-import { cornerPoint } from './stitches';
+import { cornerPoint, halfIsSlash, halfTriangleUnit } from './stitches';
 import { Viewport } from './viewport';
 
 export interface RenderOptions {
@@ -21,6 +21,10 @@ const GRID_THIN = '#e2e0d8';
 const GRID_BOLD = '#9a988e';
 const GRID_EDGE = '#5c5b54';
 const CENTER_MARK = '#c0392b';
+
+const RULER = 20;
+const RULER_BG = '#23232a';
+const RULER_TEXT = '#b9b9c2';
 
 export function render(
   ctx: CanvasRenderingContext2D,
@@ -85,6 +89,46 @@ export function renderFragmentPreview(
   ctx.restore();
 }
 
+/** Sticky column/row rulers along the top and left edges. Drawn last so they
+ *  stay readable on top of stitches, selection dimming and paste previews. */
+export function renderRulers(
+  ctx: CanvasRenderingContext2D,
+  doc: PatternDocument,
+  view: Viewport,
+  viewW: number,
+  viewH: number,
+): void {
+  const step = view.scale >= 24 ? 1 : view.scale >= 13 ? 5 : 10;
+
+  ctx.save();
+  ctx.fillStyle = RULER_BG;
+  ctx.fillRect(0, 0, viewW, RULER);
+  ctx.fillRect(0, 0, RULER, viewH);
+
+  ctx.fillStyle = RULER_TEXT;
+  ctx.font = '10px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  for (let c = 0; c < doc.width; c++) {
+    if (!(step === 1 || c === 0 || (c + 1) % step === 0)) continue;
+    const x = view.cellToScreen(c + 0.5, 0).x;
+    if (x < RULER + 4 || x > viewW) continue;
+    ctx.fillText(String(c + 1), x, RULER / 2);
+  }
+  for (let r = 0; r < doc.height; r++) {
+    if (!(step === 1 || r === 0 || (r + 1) % step === 0)) continue;
+    const y = view.cellToScreen(0, r + 0.5).y;
+    if (y < RULER + 4 || y > viewH) continue;
+    ctx.fillText(String(r + 1), RULER / 2, y);
+  }
+
+  // Hide the column ruler bleeding into the row ruler at the corner.
+  ctx.fillStyle = RULER_BG;
+  ctx.fillRect(0, 0, RULER, RULER);
+  ctx.restore();
+}
+
 function drawCell(
   ctx: CanvasRenderingContext2D,
   view: Viewport,
@@ -134,7 +178,7 @@ function drawFlat(
       ctx.fillRect(ox, oy, s, s);
       break;
     case StitchKind.Half:
-      fillPoly(ctx, color, halfTriangle(p, part.diagonal ?? Diagonal.Slash));
+      fillPoly(ctx, color, halfTriangleUnit(part).map(([fx, fy]) => p(fx, fy)));
       break;
     case StitchKind.Quarter:
       fillPoly(ctx, color, quarterTriangle(p, part.corner ?? Corner.TopLeft));
@@ -213,7 +257,7 @@ function drawRealistic(
       line(backslash[0], backslash[1], shadeColor(color, -0.12));
       break;
     case StitchKind.Half:
-      line(...(part.diagonal === Diagonal.Backslash ? backslash : slash));
+      line(...(halfIsSlash(part) ? slash : backslash));
       break;
     case StitchKind.Quarter: {
       const corner = part.corner ?? Corner.TopLeft;
