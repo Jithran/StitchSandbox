@@ -33,6 +33,23 @@ export function PwaReloadPrompt(): React.ReactElement | null {
 
   if (!needRefresh) return null;
 
+  // The clean path tells the waiting worker to take over and reloads on
+  // controllerchange. On some desktop browsers that flip never happens, so if
+  // we're still here after a few seconds, drop the service worker and hard
+  // reload — that always fetches the fresh app.
+  const reload = () => {
+    void updateServiceWorker(true);
+    window.setTimeout(async () => {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      } catch {
+        // ignore — we reload regardless
+      }
+      window.location.reload();
+    }, 3000);
+  };
+
   return (
     <div className="install-banner" role="dialog" aria-label="Update available">
       <img src="/favicon.svg" alt="" width="34" height="34" className="install-logo" />
@@ -44,7 +61,7 @@ export function PwaReloadPrompt(): React.ReactElement | null {
         <button className="ghost" onClick={() => setNeedRefresh(false)}>
           Later
         </button>
-        <button className="primary" onClick={() => updateServiceWorker(true)}>
+        <button className="primary" onClick={reload}>
           Reload
         </button>
       </div>
