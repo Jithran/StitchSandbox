@@ -6,6 +6,27 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-20
+
+### Added
+- Local project library: keep multiple designs in your browser. A new **Projects**
+  browser shows your designs as cards (thumbnail, name, size, last edited) where
+  you can open, rename, duplicate or delete them. Each project autosaves to its
+  own slot, so starting or opening another never discards your work.
+- The chart export now uses real **cross-stitch symbols** (an embedded symbol
+  font) instead of plain letters. Symbols are ordered for maximum contrast
+  between the first colors and centered in each cell, and still import into
+  Pattern Keeper.
+
+### Changed
+- It's now clearly indicated that projects are saved in your browser only, not on
+  a server — back up with Export. Clearer undo/redo icons, and the move-design pad
+  in the More menu is centered.
+
+### Fixed
+- The eraser (and right-click erase) now removes a backstitch when you click
+  anywhere along the line, not only near its endpoints.
+
 ## [0.5.0] - 2026-06-20
 
 ### Added
