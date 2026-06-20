@@ -223,9 +223,13 @@
 .modal.browser {
   width: 880px;
   max-width: 94vw;
+  /* dvh tracks the *visible* viewport, so on mobile (where the browser UI makes
+   * vh too tall) the modal stays on-screen and the grid scrolls inside it. */
   max-height: 86vh;
+  max-height: 86dvh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .browser-note {
   margin: 0 0 12px;
