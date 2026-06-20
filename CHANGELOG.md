@@ -13,16 +13,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Screen) since iOS has no install event.
 - A new app icon and logo — a cross-stitch motif shown in the browser tab, on the
   install icon, and in the app header (which now carries the StitchSandbox brand).
-
-### Added
 - DMC's newer colors 01–35 (the tin / driftwood / lavender / fuchsia range), plus
   868 and Blanc, are now in the DMC library (491 colors).
+- Remove a color from the palette by hovering its swatch and clicking ✕. Stitches
+  that already use it keep their color (non-destructive).
 
 ### Changed
 - The pattern name in the header is now editable — click it to rename the pattern
   at any time (it flows through to autosave and chart/file names).
 - An empty palette now shows a clear "Add colors" call-to-action that opens the
   color library, so first-time users know where to start.
+
+### Fixed
+- The selection overlay no longer lingers while drawing — switching away from the
+  Select tool clears the selection and its dimming.
 
 ## [0.3.1] - 2026-06-20
 

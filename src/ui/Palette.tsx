@@ -40,6 +40,16 @@ export function Palette({ engine, snap }: Props): React.ReactElement {
                 onClick={() => engine.setActiveColor(code)}
               >
                 <span className="swatch-code">{info.number}</span>
+                <span
+                  className="swatch-remove"
+                  title="Remove from palette"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    engine.removePaletteColor(code);
+                  }}
+                >
+                  ✕
+                </span>
               </button>
             );
           })}

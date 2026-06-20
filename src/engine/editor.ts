@@ -308,12 +308,28 @@ export class EditorEngine {
 
   setTool(tool: ToolType): void {
     this.tool = tool;
+    // The selection (and its dimming) belongs to the Select tool; leaving it
+    // should clear the overlay so it doesn't linger while drawing.
+    if (tool !== ToolType.Select && this.selection) {
+      this.selection = null;
+      this.requestRender();
+    }
     this.emit();
   }
 
   setActiveColor(code: string): void {
     this.activeColorCode = code;
     addPaletteColor(this.doc, code);
+    this.emit();
+  }
+
+  /** Remove a color from the working palette. Existing stitches keep their
+   *  color (non-destructive) — they still render and appear in the legend. */
+  removePaletteColor(code: string): void {
+    this.doc.palette = this.doc.palette.filter((c) => c !== code);
+    if (this.activeColorCode === code) {
+      this.activeColorCode = this.doc.palette[0] ?? null;
+    }
     this.emit();
   }
 
