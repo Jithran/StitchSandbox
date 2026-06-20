@@ -941,12 +941,10 @@ export class EditorEngine {
 
   private eraseAt(col: number, row: number, fx: number, fy: number): void {
     delete this.doc.cells[cellKey(col, row)];
-    const threshold = 0.35;
-    this.doc.backstitches = this.doc.backstitches.filter((s) => {
-      const near =
-        dist(fx, fy, s.x1, s.y1) < threshold || dist(fx, fy, s.x2, s.y2) < threshold;
-      return !near;
-    });
+    const threshold = 0.3;
+    this.doc.backstitches = this.doc.backstitches.filter(
+      (s) => distToSegment(fx, fy, s.x1, s.y1, s.x2, s.y2) >= threshold,
+    );
   }
 
   removeBackstitch(seg: BackstitchSegment): void {
@@ -954,10 +952,6 @@ export class EditorEngine {
     this.doc.backstitches = this.doc.backstitches.filter((s) => !segmentsEqual(s, seg));
     this.requestRender();
   }
-}
-
-function dist(ax: number, ay: number, bx: number, by: number): number {
-  return Math.hypot(ax - bx, ay - by);
 }
 
 /** Shortest distance from a point to a line segment, in cell units. */
