@@ -6,6 +6,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-06-20
+
+### Changed
+- The demo is now a single project showing the fox next to the Jantina Stitches
+  logo on one canvas.
+
+### Fixed
+- The demo is no longer created multiple times for first-time visitors.
+
 ## [0.7.1] - 2026-06-20
 
 ### Added
