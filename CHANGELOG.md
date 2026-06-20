@@ -6,6 +6,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-06-20
+
+### Added
+- First-time visitors now start on a ready-made **fox demo pattern**, so you can
+  immediately see what a finished design looks like. It's a normal project you
+  can edit, duplicate or delete.
+
 ## [0.6.3] - 2026-06-20
 
 ### Changed
