@@ -12,6 +12,7 @@ import { AboutDialog, HelpDialog } from './ui/InfoDialogs';
 import { InstallPrompt } from './ui/InstallPrompt';
 import { NewProjectDialog } from './ui/NewProjectDialog';
 import { Palette } from './ui/Palette';
+import { PwaReloadPrompt } from './ui/PwaReloadPrompt';
 import { SelectionMenu } from './ui/SelectionMenu';
 import { TextDialog } from './ui/TextDialog';
 import { Toolbar } from './ui/Toolbar';
@@ -277,6 +278,7 @@ export default function App(): React.ReactElement {
       {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
 
       <InstallPrompt />
+      <PwaReloadPrompt />
 
       <input
         ref={fileInput}

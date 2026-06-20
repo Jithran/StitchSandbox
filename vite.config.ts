@@ -10,7 +10,10 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // Prompt (not autoUpdate): the canvas can hold unsaved work, so we never
+      // force a reload — we tell the user a new version is ready and let them
+      // refresh when it's safe.
+      registerType: 'prompt',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'StitchSandbox',
@@ -32,6 +35,10 @@ export default defineConfig({
         navigateFallback: 'index.html',
         // The lazily-loaded export bundle (jsPDF) is large; cache it on demand.
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        // Roll new releases out cleanly: drop stale precaches and let the fresh
+        // service worker take control of open pages once the user reloads.
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
       },
     }),
   ],

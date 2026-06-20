@@ -17,6 +17,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   868 and Blanc, are now in the DMC library (491 colors).
 - Remove a color from the palette by hovering its swatch and clicking ✕. Stitches
   that already use it keep their color (non-destructive).
+- New releases roll out cleanly to installed PWAs: a "New version available —
+  Reload" prompt appears (never a forced reload, so unsaved work is safe), stale
+  caches are cleaned up, and the app re-checks for updates periodically.
 
 ### Changed
 - Starting a new pattern or opening another one now warns you first when the
