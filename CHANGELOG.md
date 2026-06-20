@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-06-20
+
+### Fixed
+- The project browser now scrolls when you have many projects on mobile, instead
+  of running off the bottom of the screen.
+
 ## [0.6.1] - 2026-06-20
 
 ### Fixed
