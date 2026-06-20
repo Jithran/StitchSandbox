@@ -318,15 +318,20 @@
 }
 .project-actions button {
   height: 28px;
+  padding: 0;
   font-size: 12px;
   background: #34343a;
   color: #e9e9ec;
   border: 1px solid #45454d;
   border-radius: 5px;
 }
-.project-actions button.primary {
+/* `.modal` prefix so it beats the generic `.modal button.primary` (padding,
+ * font-size) — otherwise the Open label gets pushed to the bottom of the cell. */
+.modal .project-actions button.primary {
+  padding: 0;
+  font-size: 12px;
   background: #3b82f6;
-  border-color: #5a9bff;
+  border: 1px solid #5a9bff;
   color: #fff;
 }
 .project-actions button.danger-ghost:hover {
