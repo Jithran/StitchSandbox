@@ -14,6 +14,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - A new app icon and logo — a cross-stitch motif shown in the browser tab, on the
   install icon, and in the app header (which now carries the StitchSandbox brand).
 
+### Added
+- DMC's newer colors 01–35 (the tin / driftwood / lavender / fuchsia range), plus
+  868 and Blanc, are now in the DMC library (491 colors).
+
 ### Changed
 - The pattern name in the header is now editable — click it to rename the pattern
   at any time (it flows through to autosave and chart/file names).
