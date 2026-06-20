@@ -7,6 +7,7 @@ import { physicalSize } from './model/document';
 import { exportToFile, importFromFile } from './model/storage';
 import { ToolType } from './model/types';
 import { CropDialog, ResizeDialog } from './ui/CanvasDialogs';
+import { ConfirmDialog } from './ui/ConfirmDialog';
 import { AboutDialog, HelpDialog } from './ui/InfoDialogs';
 import { InstallPrompt } from './ui/InstallPrompt';
 import { NewProjectDialog } from './ui/NewProjectDialog';
@@ -32,6 +33,7 @@ const TOOL_KEYS: Record<string, ToolType> = {
 export default function App(): React.ReactElement {
   const { engine, snap } = useEditor();
   const [showNew, setShowNew] = useState(false);
+  const [confirmNew, setConfirmNew] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showResize, setShowResize] = useState(false);
   const [showCrop, setShowCrop] = useState(false);
@@ -113,6 +115,12 @@ export default function App(): React.ReactElement {
   const doc = engine.getDocument();
   const size = physicalSize(doc);
 
+  const requestNew = () => {
+    const hasWork = Object.keys(doc.cells).length > 0 || doc.backstitches.length > 0;
+    if (hasWork) setConfirmNew(true);
+    else setShowNew(true);
+  };
+
   return (
     <div className="app">
       <header className="app-bar">
@@ -150,7 +158,7 @@ export default function App(): React.ReactElement {
       <Toolbar
         engine={engine}
         snap={snap}
-        onNew={() => setShowNew(true)}
+        onNew={requestNew}
         onExport={() => exportToFile(engine.getDocument())}
         onImport={() => fileInput.current?.click()}
         onExportChart={() => setShowExport(true)}
@@ -178,6 +186,40 @@ export default function App(): React.ReactElement {
           y={menu.y}
           fillColor={snap.activeColorCode ? colorHex(snap.activeColorCode) : null}
           onClose={() => setMenu(null)}
+        />
+      )}
+
+      {confirmNew && (
+        <ConfirmDialog
+          title="Start a new pattern?"
+          message={
+            <>
+              Your current pattern <strong>{doc.name}</strong> isn't saved to a file. Autosave only
+              keeps the most recent pattern, so starting a new one will{' '}
+              <strong>permanently discard your current work</strong>. Save a copy first to keep it.
+            </>
+          }
+          onClose={() => setConfirmNew(false)}
+          actions={[
+            { label: 'Cancel', variant: 'ghost', onClick: () => setConfirmNew(false) },
+            {
+              label: 'Discard & start new',
+              variant: 'danger',
+              onClick: () => {
+                setConfirmNew(false);
+                setShowNew(true);
+              },
+            },
+            {
+              label: 'Save a copy',
+              variant: 'primary',
+              onClick: () => {
+                exportToFile(engine.getDocument());
+                setConfirmNew(false);
+                setShowNew(true);
+              },
+            },
+          ]}
         />
       )}
 

@@ -936,3 +936,45 @@ label.inline {
   background: #c0494b;
   border-color: #d3595b;
 }
+
+/* ── Confirm dialog (e.g. discard-work warning) ────────────────── */
+.confirm {
+  width: 430px;
+}
+.confirm-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #d6d6db;
+}
+.confirm-body strong {
+  color: #f1f1f4;
+}
+.confirm-actions {
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.modal button.danger,
+.modal button.ghost {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.modal button.danger {
+  background: #c0494b;
+  border: 1px solid #d3595b;
+  color: #fff;
+}
+.modal button.danger:hover {
+  background: #cf5557;
+}
+.modal button.ghost {
+  background: transparent;
+  border: 1px solid #44485a;
+  color: #c3c3cb;
+}
+.modal button.ghost:hover {
+  color: #fff;
+  border-color: #5a5f70;
+}

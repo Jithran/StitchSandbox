@@ -19,6 +19,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   that already use it keep their color (non-destructive).
 
 ### Changed
+- Starting a new pattern now warns you first when the current canvas has unsaved
+  work (autosave only keeps the most recent pattern), with a one-click "Save a
+  copy" before discarding.
 - The pattern name in the header is now editable — click it to rename the pattern
   at any time (it flows through to autosave and chart/file names).
 - An empty palette now shows a clear "Add colors" call-to-action that opens the
