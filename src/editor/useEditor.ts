@@ -69,9 +69,13 @@ export function useEditor(): { engine: EditorEngine; snap: EditorSnapshot; libra
   }, [engine]);
 
   // Initial load: open the saved current project, else migrate the old autosave,
-  // else seed a first project from the engine's default document.
+  // else seed the demo projects. Guarded so it runs exactly once even when React
+  // (StrictMode) re-invokes the effect — otherwise the async seeding races and
+  // creates the demos twice.
+  const initRan = useRef(false);
   useEffect(() => {
-    let cancelled = false;
+    if (initRan.current) return;
+    initRan.current = true;
     (async () => {
       let id = getCurrentProjectId();
       let doc: PatternDocument | null = id ? await loadProjectDoc(id) : null;
@@ -80,22 +84,18 @@ export function useEditor(): { engine: EditorEngine; snap: EditorSnapshot; libra
         doc = id ? await loadProjectDoc(id) : null;
       }
       if (!id || !doc) {
-        // First-time visitor: seed the demo projects. The logo is created first
-        // (older), the fox second, so the fox sorts first and is the one we open.
+        // First-time visitor: seed the demos. The logo is created first (older),
+        // the fox second, so the fox sorts first and is the one we open.
         const logo = structuredClone(DEMO_LOGO);
         await createProject(logo, renderThumbnail(logo));
         doc = structuredClone(DEMO_FOX);
         id = await createProject(doc, renderThumbnail(doc));
       }
-      if (cancelled) return;
       if (doc !== engine.getDocument()) engine.loadDocument(doc);
       setCurrent(id);
       await refresh();
       setReady(true);
     })();
-    return () => {
-      cancelled = true;
-    };
   }, [engine, refresh, setCurrent]);
 
   // Debounced autosave of the open project on every change.
