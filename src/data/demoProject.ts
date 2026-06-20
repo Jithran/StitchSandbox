@@ -1,10 +1,8 @@
 import { type PatternDocument } from '../model/types';
-import fox from './demo-fox.json';
-import logo from './demo-jslogo.json';
+import demo from './demo.json';
 
-// Ready-made patterns seeded into the library for first-time visitors so they
-// immediately see what finished designs look like. The fox was generated from a
-// fox illustration; the logo was reconstructed from a chart made in this tool.
-// Both are quantized to / built from DMC floss colors.
-export const DEMO_FOX = fox as unknown as PatternDocument;
-export const DEMO_LOGO = logo as unknown as PatternDocument;
+// A ready-made demo seeded into the library for first-time visitors so they
+// immediately see what's possible: a fox (quantized from an illustration) next
+// to the Jantina Stitches logo (reconstructed from a chart made in this tool),
+// on a single canvas, all in DMC floss colors.
+export const DEMO_PROJECT = demo as unknown as PatternDocument;
