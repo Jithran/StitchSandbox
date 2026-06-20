@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { DEMO_PROJECT } from '../data/demoProject';
+import { DEMO_FOX, DEMO_LOGO } from '../data/demoProject';
 import { renderThumbnail } from '../export/thumbnail';
 import { EditorEngine, type EditorSnapshot } from '../engine/editor';
 import { createDocument, type NewDocumentOptions } from '../model/document';
@@ -80,8 +80,11 @@ export function useEditor(): { engine: EditorEngine; snap: EditorSnapshot; libra
         doc = id ? await loadProjectDoc(id) : null;
       }
       if (!id || !doc) {
-        // First-time visitor: seed the demo fox so they land on a finished design.
-        doc = structuredClone(DEMO_PROJECT);
+        // First-time visitor: seed the demo projects. The logo is created first
+        // (older), the fox second, so the fox sorts first and is the one we open.
+        const logo = structuredClone(DEMO_LOGO);
+        await createProject(logo, renderThumbnail(logo));
+        doc = structuredClone(DEMO_FOX);
         id = await createProject(doc, renderThumbnail(doc));
       }
       if (cancelled) return;
