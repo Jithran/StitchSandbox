@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { colorHex, colorInfo, customCode, searchThreads, type LibraryBrand } from '../data/colors';
 import { EditorEngine, type EditorSnapshot } from '../engine/editor';
 import { Modal } from './Modal';
@@ -10,7 +10,35 @@ interface Props {
 
 export function Palette({ engine, snap }: Props): React.ReactElement {
   const [libraryOpen, setLibraryOpen] = useState(false);
+  // Which swatch currently has its remove button revealed via long-press (mobile).
+  const [revealCode, setRevealCode] = useState<string | null>(null);
+  const longPressTimer = useRef<number | null>(null);
+  const longPressFired = useRef(false);
   const palette = engine.getDocument().palette;
+
+  const startLongPress = (code: string) => {
+    longPressFired.current = false;
+    longPressTimer.current = window.setTimeout(() => {
+      longPressFired.current = true;
+      setRevealCode(code);
+    }, 500);
+  };
+  const cancelLongPress = () => {
+    if (longPressTimer.current !== null) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  // Dismiss a revealed remove button when tapping/clicking anywhere else.
+  useEffect(() => {
+    if (revealCode === null) return;
+    const dismiss = (e: PointerEvent) => {
+      if (!(e.target as Element).closest('.swatch-remove')) setRevealCode(null);
+    };
+    document.addEventListener('pointerdown', dismiss);
+    return () => document.removeEventListener('pointerdown', dismiss);
+  }, [revealCode]);
 
   return (
     <div className="palette">
@@ -37,14 +65,27 @@ export function Palette({ engine, snap }: Props): React.ReactElement {
                 className={`swatch ${snap.activeColorCode === code ? 'active' : ''}`}
                 style={{ background: colorHex(code) }}
                 title={`${info.brand} ${info.number}${info.name ? ` — ${info.name}` : ''}`}
-                onClick={() => engine.setActiveColor(code)}
+                onClick={() => {
+                  // A long-press already revealed the remove button; don't also select.
+                  if (longPressFired.current) {
+                    longPressFired.current = false;
+                    return;
+                  }
+                  setRevealCode(null);
+                  engine.setActiveColor(code);
+                }}
+                onTouchStart={() => startLongPress(code)}
+                onTouchEnd={cancelLongPress}
+                onTouchMove={cancelLongPress}
+                onContextMenu={(e) => e.preventDefault()}
               >
                 <span className="swatch-code">{info.number}</span>
                 <span
-                  className="swatch-remove"
-                  title="Remove from palette"
+                  className={`swatch-remove ${revealCode === code ? 'revealed' : ''}`}
+                  title="Remove from palette — stitches keep their color"
                   onClick={(e) => {
                     e.stopPropagation();
+                    setRevealCode(null);
                     engine.removePaletteColor(code);
                   }}
                 >

@@ -3,6 +3,7 @@ import './App.css';
 import { colorHex } from './data/colors';
 import { EditorCanvas } from './editor/EditorCanvas';
 import { useEditor } from './editor/useEditor';
+import { type EditorSnapshot } from './engine/editor';
 import { physicalSize } from './model/document';
 import { exportToFile, importFromFile } from './model/storage';
 import { ToolType } from './model/types';
@@ -156,6 +157,7 @@ export default function App(): React.ReactElement {
           {size.height.toFixed(1)} {doc.unit}
         </span>
         <div className="app-bar-actions">
+          <AutosaveStatus snap={snap} />
           <button onClick={() => setShowHelp(true)}>Help</button>
           <button onClick={() => setShowAbout(true)}>About</button>
         </div>
@@ -303,4 +305,28 @@ export default function App(): React.ReactElement {
 function isTyping(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
   return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+}
+
+/** Reassures that work persists in the browser; the actual write happens in
+ *  useEditor on every snapshot. Briefly flashes "Saving…" on each change. */
+function AutosaveStatus({ snap }: { snap: EditorSnapshot }): React.ReactElement {
+  const [saving, setSaving] = useState(false);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    setSaving(true);
+    const t = setTimeout(() => setSaving(false), 700);
+    return () => clearTimeout(t);
+  }, [snap]);
+  return (
+    <span
+      className={`autosave ${saving ? 'saving' : ''}`}
+      title="Your work saves automatically in this browser"
+    >
+      {saving ? 'Saving…' : 'Saved'}
+    </span>
+  );
 }

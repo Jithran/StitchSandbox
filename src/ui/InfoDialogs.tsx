@@ -77,7 +77,7 @@ export function AboutDialog({ onClose }: Props): React.ReactElement {
         <div className="info-body">
           <p>
             <strong>StitchSandbox</strong> is a browser-based cross-stitch pattern designer. Design on
-            a grid with DMC floss colors and full, half, quarter, three-quarter and backstitches, then
+            a grid with DMC floss colors and full, half, quarter and backstitches, then
             export a print-ready chart that imports into Pattern Keeper.
           </p>
           <p>Version {__APP_VERSION__}</p>

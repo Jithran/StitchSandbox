@@ -21,7 +21,6 @@ export enum ToolType {
   Full = 'full',
   Half = 'half',
   Quarter = 'quarter',
-  ThreeQuarter = 'threeQuarter',
   Backstitch = 'backstitch',
   Eraser = 'eraser',
   Pan = 'pan',

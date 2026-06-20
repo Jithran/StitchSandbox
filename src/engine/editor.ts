@@ -35,8 +35,18 @@ import {
   type StitchPart,
 } from '../model/types';
 import { render, renderFragmentPreview, renderRulers } from './renderer';
-import { cornerFromFraction, diagonalForCorner, snapNode } from './stitches';
+import { cornerFromFraction, snapNode } from './stitches';
 import { Viewport } from './viewport';
+
+/** Drawing tools that lay down colored stitches (vs. eraser/pan/select). */
+function isStitchTool(tool: ToolType): boolean {
+  return (
+    tool === ToolType.Full ||
+    tool === ToolType.Half ||
+    tool === ToolType.Quarter ||
+    tool === ToolType.Backstitch
+  );
+}
 
 export interface EditorSnapshot {
   tool: ToolType;
@@ -75,6 +85,8 @@ export class EditorEngine {
   private rafId = 0;
 
   tool: ToolType = ToolType.Full;
+  /** Last drawing tool used, so we can return to it after the eraser/pan. */
+  private lastStitchTool: ToolType = ToolType.Full;
   activeColorCode: string | null = null;
   halfDiagonal: Diagonal = Diagonal.Slash;
   realistic = false;
@@ -308,6 +320,7 @@ export class EditorEngine {
 
   setTool(tool: ToolType): void {
     this.tool = tool;
+    if (isStitchTool(tool)) this.lastStitchTool = tool;
     // The selection (and its dimming) belongs to the Select tool; leaving it
     // should clear the overlay so it doesn't linger while drawing.
     if (tool !== ToolType.Select && this.selection) {
@@ -320,6 +333,9 @@ export class EditorEngine {
   setActiveColor(code: string): void {
     this.activeColorCode = code;
     addPaletteColor(this.doc, code);
+    // Picking a color signals intent to draw — leave the eraser and return to
+    // the last stitch tool so you don't keep wiping while choosing a color.
+    if (this.tool === ToolType.Eraser) this.tool = this.lastStitchTool;
     this.emit();
   }
 
@@ -796,13 +812,6 @@ export class EditorEngine {
         return { kind: StitchKind.Half, colorCode, diagonal: this.halfDiagonal };
       case ToolType.Quarter:
         return { kind: StitchKind.Quarter, colorCode, corner };
-      case ToolType.ThreeQuarter:
-        return {
-          kind: StitchKind.ThreeQuarter,
-          colorCode,
-          corner,
-          diagonal: diagonalForCorner(corner),
-        };
       default:
         return null;
     }
