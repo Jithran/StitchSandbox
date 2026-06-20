@@ -6,6 +6,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-06-20
+
+### Fixed
+- The project browser now shows the open design's thumbnail and color count right
+  away — it previously stayed "Empty" until you reopened the project.
+- Project thumbnails no longer stretch too tall on mobile and overlap the card
+  buttons.
+
 ## [0.6.0] - 2026-06-20
 
 ### Added
