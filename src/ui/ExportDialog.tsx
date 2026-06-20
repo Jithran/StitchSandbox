@@ -1,5 +1,10 @@
-import { useMemo, useState } from 'react';
-import { chartFileName, renderChartPages, type ChartMode } from '../export/chart';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  chartFileName,
+  ensureSymbolFontLoaded,
+  renderChartPages,
+  type ChartMode,
+} from '../export/chart';
 import { exportChartPdf } from '../export/pdf';
 import { usedColors } from '../model/document';
 import { type PatternDocument } from '../model/types';
@@ -18,9 +23,17 @@ export function ExportDialog({ doc, onClose }: Props): React.ReactElement {
 
   const empty = usedColors(doc).size === 0;
 
+  // Render the preview with the embedded symbol font once it's available, so it
+  // matches the PDF instead of falling back to system glyphs.
+  const [fontReady, setFontReady] = useState(false);
+  useEffect(() => {
+    ensureSymbolFontLoaded().then(() => setFontReady(true));
+  }, []);
+
   const pages = useMemo(
     () => (empty ? [] : renderChartPages(doc, { mode, stitchesPerPage: perPage })),
-    [doc, mode, perPage, empty],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-render once the font loads
+    [doc, mode, perPage, empty, fontReady],
   );
 
   const previews = useMemo(

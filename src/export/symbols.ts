@@ -2,19 +2,37 @@ import { usedColors } from '../model/document';
 import { type PatternDocument } from '../model/types';
 
 /**
- * Distinct single characters for the symbol chart. Restricted to plain
- * WinAnsi/Helvetica glyphs so they render as real, parseable text in the
- * vector PDF — a requirement for Pattern Keeper compatibility. Ambiguous
- * shapes (I/l/O/o/0/1) are left out.
+ * Distinct cross-stitch symbols for the chart. These are real characters from
+ * the embedded Noto Sans Symbols 2 subset (see ./font), so they render as
+ * selectable text in the vector PDF — a requirement for Pattern Keeper — while
+ * looking like proper cross-stitch icons instead of plain letters.
+ *
+ * The order maximizes visual contrast up front (a "farthest-first" walk over
+ * shape family, fill style — solid/outline/line/half/texture — and ink
+ * density). Colors are assigned in order, so the first handful look as
+ * different as possible from each other; only as more colors are used do
+ * subtler shapes and near-duplicates (e.g. a bigger circle) fill in, and they
+ * stay far apart in the order.
  */
 const SYMBOL_POOL = [
-  'A', 'S', 'T', 'X', 'H', 'K', 'V', 'Z', 'N', 'E', 'F', 'W', 'Y', 'U', 'P',
-  'R', 'B', 'C', 'D', 'G', 'J', 'L', 'M', 'Q',
-  'a', 'e', 's', 't', 'k', 'm', 'n', 'u', 'v', 'w', 'x', 'z', 'b', 'd', 'f',
-  'g', 'h', 'p', 'q', 'r', 'y', 'c',
-  '2', '3', '4', '5', '6', '7', '8', '9',
-  '@', '#', '$', '%', '&', '=', '+', '?',
+  '●', '△', '▤', '✚', '◈', '◢', '⬛', '▲',
+  '★', '⬟', '⬡', '○', '❖', '☆', '◇', '◉',
+  '□', '✸', '◆', '◐', '▣', '❂', '◼', '■',
+  '⬤', '◎', '▩', '▦', '✦', '✿', '⬢', '◑',
+  '▥', '▧', '▨', '▼', '◀', '▶', '▽', '◣',
+  '◤', '◥', '✧', '✖', '◯', '⬜',
 ];
+
+/** Used when a color somehow has no assigned symbol (defensive only). */
+export const FALLBACK_SYMBOL = SYMBOL_POOL[0];
+
+/**
+ * Mean vertical center of the symbol glyphs, as a fraction of the font size
+ * above the baseline (measured from the embedded subset; stdev ≈ 0.03). The
+ * glyphs sit around the math axis rather than the em center, so we draw them on
+ * the alphabetic baseline and nudge down by this much to center them in a cell.
+ */
+export const SYMBOL_CENTROID = 0.359;
 
 export interface ColorUsage {
   colorCode: string;

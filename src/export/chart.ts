@@ -8,9 +8,35 @@ import {
   type PatternDocument,
   type StitchPart,
 } from '../model/types';
-import { buildColorUsage, symbolMap, type ColorUsage } from './symbols';
+import { SYMBOL_FONT_BASE64 } from './font';
+import {
+  buildColorUsage,
+  FALLBACK_SYMBOL,
+  SYMBOL_CENTROID,
+  symbolMap,
+  type ColorUsage,
+} from './symbols';
 
 export type ChartMode = 'symbol' | 'color';
+
+// The embedded symbol font, also used for the on-screen preview so it matches
+// the PDF exactly (and never falls back to a missing system glyph).
+const SYMBOL_FONT = 'StitchSymbols';
+const symbolFont = (px: number): string => `${px}px "${SYMBOL_FONT}", sans-serif`;
+
+let symbolFontPromise: Promise<void> | null = null;
+export function ensureSymbolFontLoaded(): Promise<void> {
+  if (symbolFontPromise) return symbolFontPromise;
+  symbolFontPromise = (async () => {
+    if (typeof FontFace === 'undefined') return;
+    const face = new FontFace(SYMBOL_FONT, `url(data:font/ttf;base64,${SYMBOL_FONT_BASE64})`);
+    await face.load();
+    document.fonts.add(face);
+  })().catch(() => {
+    // Fall back to system symbol glyphs if the font can't load.
+  });
+  return symbolFontPromise;
+}
 
 export interface ChartOptions {
   mode: ChartMode;
@@ -249,13 +275,14 @@ function drawChartPart(
     drawPartialEdge(ctx, x, y, s, part);
   }
 
-  const glyph = symbols.get(part.colorCode) ?? '?';
+  const glyph = symbols.get(part.colorCode) ?? FALLBACK_SYMBOL;
   const a = symbolAnchor(part);
+  const fs = Math.round(s * a.scale);
   ctx.fillStyle = mode === 'color' ? contrast(color) : INK;
-  ctx.font = `${Math.round(s * a.scale)}px sans-serif`;
+  ctx.font = symbolFont(fs);
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(glyph, x + a.cx * s, y + a.cy * s + s * 0.04);
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(glyph, x + a.cx * s, y + a.cy * s + fs * SYMBOL_CENTROID);
 }
 
 function drawPartialEdge(
@@ -503,8 +530,11 @@ function renderLegendPage(doc: PatternDocument, usage: ColorUsage[]): ChartPage 
     const info = colorInfo(u.colorCode);
     ctx.fillStyle = INK;
     ctx.textAlign = 'center';
-    ctx.font = `${Math.round(Math.min(rowH * 0.6, 20))}px sans-serif`;
-    ctx.fillText(u.symbol, cols.sym + 26, ry + rowH / 2);
+    const symFs = Math.round(Math.min(rowH * 0.6, 20));
+    ctx.font = symbolFont(symFs);
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(u.symbol, cols.sym + 26, ry + rowH / 2 + symFs * SYMBOL_CENTROID);
+    ctx.textBaseline = 'middle';
 
     ctx.fillStyle = dmcHex(u.colorCode);
     ctx.fillRect(cols.swatch, ry + 5, 60, rowH - 10);

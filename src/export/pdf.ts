@@ -9,8 +9,14 @@ import {
   type StitchPart,
 } from '../model/types';
 import { clipSegment, type ChartMode } from './chart';
-import { STITCH_FONT_BASE64 } from './font';
-import { buildColorUsage, symbolMap, type ColorUsage } from './symbols';
+import { SYMBOL_FONT_BASE64, TEXT_FONT_BASE64 } from './font';
+import {
+  buildColorUsage,
+  FALLBACK_SYMBOL,
+  SYMBOL_CENTROID,
+  symbolMap,
+  type ColorUsage,
+} from './symbols';
 
 // A4 in points. Everything is vector (lines, filled shapes, embedded-font
 // text) so files stay small and Pattern Keeper can parse the grid, symbols
@@ -23,7 +29,9 @@ const NUM_GUTTER = 14;
 const ARROW_BAND = 12;
 const INCH_TO_CM = 2.54;
 const SIZE_COUNTS = [14, 16, 18, 28];
-const FONT = 'stitch';
+// Labels use an embedded Latin font; symbols use the embedded symbol font.
+const TEXT_FONT = 'stitchText';
+const SYMBOL_FONT = 'stitchSym';
 
 const GRID_THIN: RGB = [205, 205, 205];
 const GRID_BOLD: RGB = [26, 26, 26];
@@ -51,9 +59,11 @@ export function buildChartPdf(
   stitchesPerPage: number,
 ): jsPDF {
   const pdf = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait', compress: true });
-  pdf.addFileToVFS('Stitch.ttf', STITCH_FONT_BASE64);
-  pdf.addFont('Stitch.ttf', FONT, 'normal');
-  pdf.setFont(FONT, 'normal');
+  pdf.addFileToVFS('StitchText.ttf', TEXT_FONT_BASE64);
+  pdf.addFont('StitchText.ttf', TEXT_FONT, 'normal');
+  pdf.addFileToVFS('StitchSym.ttf', SYMBOL_FONT_BASE64);
+  pdf.addFont('StitchSym.ttf', SYMBOL_FONT, 'normal');
+  pdf.setFont(TEXT_FONT, 'normal');
 
   const usage = buildColorUsage(doc);
   const symbols = symbolMap(usage);
@@ -186,16 +196,21 @@ function drawCell(
     drawPartialEdge(pdf, x, y, s, part);
   }
 
-  const glyph = symbols.get(part.colorCode) ?? '?';
+  const glyph = symbols.get(part.colorCode) ?? FALLBACK_SYMBOL;
   const a = symbolAnchor(part);
-  pdf.setFontSize(s * a.scale);
+  const fs = s * a.scale;
+  pdf.setFont(SYMBOL_FONT, 'normal');
+  pdf.setFontSize(fs);
   if (mode === 'color') {
     const [cr, cg, cb] = contrast(hex);
     pdf.setTextColor(cr, cg, cb);
   } else {
     pdf.setTextColor(...INK);
   }
-  pdf.text(glyph, x + a.cx * s, y + a.cy * s, { align: 'center', baseline: 'middle' });
+  // Draw on the baseline and nudge down by the glyph centroid to center it; the
+  // symbol glyphs sit around the math axis, so 'middle' leaves them too high.
+  pdf.text(glyph, x + a.cx * s, y + a.cy * s + fs * SYMBOL_CENTROID, { align: 'center' });
+  pdf.setFont(TEXT_FONT, 'normal');
 }
 
 function fillStitch(pdf: jsPDF, x: number, y: number, s: number, part: StitchPart): void {
@@ -457,7 +472,9 @@ function drawFlossSection(
     const info = colorInfo(u.colorCode);
     pdf.setFontSize(11);
     pdf.setTextColor(...INK);
+    pdf.setFont(SYMBOL_FONT, 'normal');
     pdf.text(u.symbol, COL.sym, cursor.y, { align: 'center' });
+    pdf.setFont(TEXT_FONT, 'normal');
     pdf.setFontSize(9);
     pdf.text(String(strands), COL.strands + 8, cursor.y);
     pdf.text(info.brand, COL.type, cursor.y);
