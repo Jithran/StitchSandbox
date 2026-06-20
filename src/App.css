@@ -380,6 +380,23 @@
   background: #4f8cff;
   border-radius: 50%;
 }
+.browser-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 12px;
+}
+.browser-demo-btn {
+  background: #34343a;
+  color: #cdd0d6;
+  border: 1px solid #45454d;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+}
+.browser-demo-btn:hover {
+  background: #3f3f47;
+  color: #fff;
+}
 
 .workspace {
   display: flex;

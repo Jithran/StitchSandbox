@@ -35,6 +35,7 @@ export interface Library {
   prepare: () => Promise<void>;
   open: (id: string) => Promise<void>;
   create: (opts: NewDocumentOptions) => Promise<void>;
+  loadDemo: () => Promise<void>;
   importDoc: (doc: PatternDocument) => Promise<void>;
   duplicate: (id: string) => Promise<void>;
   rename: (id: string, name: string) => Promise<void>;
@@ -146,6 +147,11 @@ export function useEditor(): { engine: EditorEngine; snap: EditorSnapshot; libra
     [engine, flush, refresh, setCurrent],
   );
 
+  const loadDemo = useCallback(
+    () => importDoc(structuredClone(DEMO_PROJECT)),
+    [importDoc],
+  );
+
   const duplicate = useCallback(
     async (id: string) => {
       if (id === currentIdRef.current) await flush();
@@ -196,6 +202,7 @@ export function useEditor(): { engine: EditorEngine; snap: EditorSnapshot; libra
     prepare,
     open,
     create,
+    loadDemo,
     importDoc,
     duplicate,
     rename,

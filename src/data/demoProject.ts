@@ -6,3 +6,6 @@ import demo from './demo.json';
 // to the Jantina Stitches logo (reconstructed from a chart made in this tool),
 // on a single canvas, all in DMC floss colors.
 export const DEMO_PROJECT = demo as unknown as PatternDocument;
+
+/** Name used to detect whether the demo is already in the library. */
+export const DEMO_NAME = DEMO_PROJECT.name;

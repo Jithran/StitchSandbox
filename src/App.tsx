@@ -207,6 +207,10 @@ export default function App(): React.ReactElement {
             setShowBrowser(false);
             setShowNew(true);
           }}
+          onLoadDemo={() => {
+            library.loadDemo();
+            setShowBrowser(false);
+          }}
           onDuplicate={(id) => library.duplicate(id)}
           onRename={(id, name) => library.rename(id, name)}
           onDelete={(id) => library.remove(id)}

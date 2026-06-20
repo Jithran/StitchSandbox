@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { DEMO_NAME } from '../data/demoProject';
 import { type ProjectMeta } from '../model/library';
 import { ConfirmDialog } from './ConfirmDialog';
 import { Modal } from './Modal';
@@ -8,6 +9,7 @@ interface Props {
   currentId: string | null;
   onOpen: (id: string) => void;
   onNew: () => void;
+  onLoadDemo: () => void;
   onDuplicate: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
@@ -19,11 +21,13 @@ export function ProjectBrowser({
   currentId,
   onOpen,
   onNew,
+  onLoadDemo,
   onDuplicate,
   onRename,
   onDelete,
   onClose,
 }: Props): React.ReactElement {
+  const hasDemo = projects.some((p) => p.name === DEMO_NAME);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<ProjectMeta | null>(null);
@@ -105,6 +109,14 @@ export function ProjectBrowser({
           </div>
         ))}
       </div>
+
+      {!hasDemo && (
+        <div className="browser-footer">
+          <button className="browser-demo-btn" onClick={onLoadDemo}>
+            Open the demo project
+          </button>
+        </div>
+      )}
 
       {confirmDelete && (
         <ConfirmDialog
