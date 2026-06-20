@@ -1,15 +1,9 @@
 import { deserialize, serialize } from './document';
 import { type PatternDocument } from './types';
 
+// Legacy single-document autosave key. The project library (see ./library)
+// migrates this into its first project, after which the key is removed.
 const AUTOSAVE_KEY = 'stitchsandbox:autosave';
-
-export function saveAutosave(doc: PatternDocument): void {
-  try {
-    localStorage.setItem(AUTOSAVE_KEY, serialize(doc));
-  } catch {
-    // Quota or private mode: ignore, autosave is best-effort.
-  }
-}
 
 export function loadAutosave(): PatternDocument | null {
   const json = localStorage.getItem(AUTOSAVE_KEY);

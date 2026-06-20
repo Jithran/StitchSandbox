@@ -8,11 +8,11 @@ import { physicalSize } from './model/document';
 import { exportToFile, importFromFile } from './model/storage';
 import { ToolType } from './model/types';
 import { CropDialog, ResizeDialog } from './ui/CanvasDialogs';
-import { ConfirmDialog } from './ui/ConfirmDialog';
 import { AboutDialog, HelpDialog } from './ui/InfoDialogs';
 import { InstallPrompt } from './ui/InstallPrompt';
 import { NewProjectDialog } from './ui/NewProjectDialog';
 import { Palette } from './ui/Palette';
+import { ProjectBrowser } from './ui/ProjectBrowser';
 import { PwaReloadPrompt } from './ui/PwaReloadPrompt';
 import { SelectionMenu } from './ui/SelectionMenu';
 import { TextDialog } from './ui/TextDialog';
@@ -35,9 +35,9 @@ const TOOL_KEYS: Record<string, ToolType> = {
 };
 
 export default function App(): React.ReactElement {
-  const { engine, snap } = useEditor();
+  const { engine, snap, library } = useEditor();
   const [showNew, setShowNew] = useState(false);
-  const [confirm, setConfirm] = useState<'new' | 'open' | null>(null);
+  const [showBrowser, setShowBrowser] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showResize, setShowResize] = useState(false);
   const [showCrop, setShowCrop] = useState(false);
@@ -119,16 +119,8 @@ export default function App(): React.ReactElement {
   const doc = engine.getDocument();
   const size = physicalSize(doc);
 
-  const hasWork = Object.keys(doc.cells).length > 0 || doc.backstitches.length > 0;
+  // Every project autosaves to its own slot, so New/Open never discard work.
   const openFilePicker = () => fileInput.current?.click();
-
-  const requestNew = () => (hasWork ? setConfirm('new') : setShowNew(true));
-  const requestOpen = () => (hasWork ? setConfirm('open') : openFilePicker());
-  const proceed = (action: 'new' | 'open') => {
-    setConfirm(null);
-    if (action === 'new') setShowNew(true);
-    else openFilePicker();
-  };
 
   return (
     <div className="app">
@@ -168,9 +160,10 @@ export default function App(): React.ReactElement {
       <Toolbar
         engine={engine}
         snap={snap}
-        onNew={requestNew}
+        onNew={() => setShowNew(true)}
+        onProjects={() => setShowBrowser(true)}
         onExport={() => exportToFile(engine.getDocument())}
-        onImport={requestOpen}
+        onImport={openFilePicker}
         onExportChart={() => setShowExport(true)}
         onResize={() => setShowResize(true)}
         onCrop={() => setShowCrop(true)}
@@ -199,33 +192,22 @@ export default function App(): React.ReactElement {
         />
       )}
 
-      {confirm && (
-        <ConfirmDialog
-          title={confirm === 'new' ? 'Start a new pattern?' : 'Open another pattern?'}
-          message={
-            <>
-              Your current pattern <strong>{doc.name}</strong> isn't saved to a file. Autosave only
-              keeps the most recent pattern, so {confirm === 'new' ? 'starting a new one' : 'opening another'}{' '}
-              will <strong>permanently discard your current work</strong>. Save a copy first to keep it.
-            </>
-          }
-          onClose={() => setConfirm(null)}
-          actions={[
-            { label: 'Cancel', variant: 'ghost', onClick: () => setConfirm(null) },
-            {
-              label: confirm === 'new' ? 'Discard & start new' : 'Discard & open',
-              variant: 'danger',
-              onClick: () => proceed(confirm),
-            },
-            {
-              label: 'Save a copy',
-              variant: 'primary',
-              onClick: () => {
-                exportToFile(engine.getDocument());
-                proceed(confirm);
-              },
-            },
-          ]}
+      {showBrowser && (
+        <ProjectBrowser
+          projects={library.projects}
+          currentId={library.currentId}
+          onOpen={(id) => {
+            library.open(id);
+            setShowBrowser(false);
+          }}
+          onNew={() => {
+            setShowBrowser(false);
+            setShowNew(true);
+          }}
+          onDuplicate={(id) => library.duplicate(id)}
+          onRename={(id, name) => library.rename(id, name)}
+          onDelete={(id) => library.remove(id)}
+          onClose={() => setShowBrowser(false)}
         />
       )}
 
@@ -233,7 +215,7 @@ export default function App(): React.ReactElement {
         <NewProjectDialog
           onClose={() => setShowNew(false)}
           onCreate={(opts) => {
-            engine.newDocument(opts);
+            library.create(opts);
             setShowNew(false);
           }}
         />
@@ -293,7 +275,7 @@ export default function App(): React.ReactElement {
           const file = e.target.files?.[0];
           if (!file) return;
           try {
-            engine.loadDocument(await importFromFile(file));
+            await library.importDoc(await importFromFile(file));
           } catch {
             alert('Could not read that pattern file.');
           }
@@ -326,9 +308,9 @@ function AutosaveStatus({ snap }: { snap: EditorSnapshot }): React.ReactElement 
   return (
     <span
       className={`autosave ${saving ? 'saving' : ''}`}
-      title="Your work saves automatically in this browser"
+      title="Projects are saved automatically in this browser, not on a server"
     >
-      {saving ? 'Saving…' : 'Saved'}
+      {saving ? 'Saving…' : 'Saved'} <span className="autosave-where">in this browser</span>
     </span>
   );
 }

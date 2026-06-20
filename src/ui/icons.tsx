@@ -83,8 +83,8 @@ export function SelectIcon(p: IconProps): React.ReactElement {
 export function UndoIcon(p: IconProps): React.ReactElement {
   return (
     <Svg {...p}>
-      <path d="M3 7v6h6" />
-      <path d="M3 13a9 9 0 1 0 3-7L3 9" />
+      <path d="M9 14 4 9l5-5" />
+      <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H10" />
     </Svg>
   );
 }
@@ -92,8 +92,8 @@ export function UndoIcon(p: IconProps): React.ReactElement {
 export function RedoIcon(p: IconProps): React.ReactElement {
   return (
     <Svg {...p}>
-      <path d="M21 7v6h-6" />
-      <path d="M21 13a9 9 0 1 1-3-7l3 3" />
+      <path d="m15 14 5-5-5-5" />
+      <path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H14" />
     </Svg>
   );
 }
@@ -242,6 +242,17 @@ export function ChartIcon(p: IconProps): React.ReactElement {
     <Svg {...p}>
       <rect x="3" y="3" width="18" height="18" rx="2" />
       <path d="M9 3v18M15 3v18M3 9h18M3 15h18" />
+    </Svg>
+  );
+}
+
+export function ProjectsIcon(p: IconProps): React.ReactElement {
+  return (
+    <Svg {...p}>
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
     </Svg>
   );
 }

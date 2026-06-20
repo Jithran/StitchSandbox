@@ -18,6 +18,7 @@ import {
   NewIcon,
   PanIcon,
   PasteIcon,
+  ProjectsIcon,
   RedoIcon,
   ReplaceIcon,
   RotateCCWIcon,
@@ -33,6 +34,7 @@ interface Props {
   engine: EditorEngine;
   snap: EditorSnapshot;
   onNew: () => void;
+  onProjects: () => void;
   onExport: () => void;
   onImport: () => void;
   onExportChart: () => void;
@@ -57,6 +59,7 @@ export function Toolbar({
   engine,
   snap,
   onNew,
+  onProjects,
   onExport,
   onImport,
   onExportChart,
@@ -67,6 +70,10 @@ export function Toolbar({
   return (
     <div className="toolbar">
       <div className="toolbar-group">
+        <button onClick={onProjects} title="My projects (saved in this browser)" aria-label="My projects">
+          <ProjectsIcon />
+          <span className="btn-label">Projects</span>
+        </button>
         <button onClick={onNew} title="New pattern" aria-label="New pattern">
           <NewIcon />
           <span className="btn-label">New</span>
