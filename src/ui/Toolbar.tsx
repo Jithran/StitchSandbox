@@ -7,10 +7,8 @@ import {
   CopyIcon,
   CutIcon,
   EraserIcon,
-  ExportIcon,
   EyedropperIcon,
   FitIcon,
-  ImportIcon,
   MirrorHIcon,
   MirrorVIcon,
   MoreIcon,
@@ -41,6 +39,8 @@ interface Props {
   onResize: () => void;
   onCrop: () => void;
   onText: () => void;
+  onHelp: () => void;
+  onAbout: () => void;
 }
 
 const TOOLS: Array<{ tool: ToolType; label: ReactNode; title: string; key: string }> = [
@@ -66,6 +66,8 @@ export function Toolbar({
   onResize,
   onCrop,
   onText,
+  onHelp,
+  onAbout,
 }: Props): React.ReactElement {
   return (
     <div className="toolbar">
@@ -77,14 +79,6 @@ export function Toolbar({
         <button onClick={onNew} title="New pattern" aria-label="New pattern">
           <NewIcon />
           <span className="btn-label">New</span>
-        </button>
-        <button onClick={onExport} title="Download as .json" aria-label="Export to file">
-          <ExportIcon />
-          <span className="btn-label">Export</span>
-        </button>
-        <button onClick={onImport} title="Open a .json file" aria-label="Import from file">
-          <ImportIcon />
-          <span className="btn-label">Import</span>
         </button>
         <button onClick={onExportChart} title="Export chart to PDF" aria-label="Export chart to PDF">
           <ChartIcon />
@@ -216,7 +210,16 @@ export function Toolbar({
         </button>
       </div>
 
-      <MoreMenu engine={engine} onResize={onResize} onCrop={onCrop} onText={onText} />
+      <MoreMenu
+        engine={engine}
+        onExport={onExport}
+        onImport={onImport}
+        onResize={onResize}
+        onCrop={onCrop}
+        onText={onText}
+        onHelp={onHelp}
+        onAbout={onAbout}
+      />
     </div>
   );
 }
@@ -243,14 +246,22 @@ function ActiveColorChip({ code }: { code: string | null }): React.ReactElement 
 
 function MoreMenu({
   engine,
+  onExport,
+  onImport,
   onResize,
   onCrop,
   onText,
+  onHelp,
+  onAbout,
 }: {
   engine: EditorEngine;
+  onExport: () => void;
+  onImport: () => void;
   onResize: () => void;
   onCrop: () => void;
   onText: () => void;
+  onHelp: () => void;
+  onAbout: () => void;
 }): React.ReactElement {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -274,8 +285,8 @@ function MoreMenu({
       <button
         className={open ? 'active' : ''}
         onClick={() => setOpen((v) => !v)}
-        title="More tools"
-        aria-label="More tools"
+        title="More"
+        aria-label="More"
         aria-haspopup="true"
         aria-expanded={open}
       >
@@ -284,24 +295,36 @@ function MoreMenu({
       </button>
 
       {open && (
-        <div className="more-popover" role="menu">
-          <div className="more-section">
-            <span className="more-heading">
-              <MoveIcon size={14} /> Move design
-            </span>
-            <div className="move-pad">
-              <button onClick={() => engine.shiftDesign(0, -1)} title="Move up" aria-label="Move design up">↑</button>
-              <button onClick={() => engine.shiftDesign(-1, 0)} title="Move left" aria-label="Move design left">←</button>
-              <button onClick={() => engine.shiftDesign(1, 0)} title="Move right" aria-label="Move design right">→</button>
-              <button onClick={() => engine.shiftDesign(0, 1)} title="Move down" aria-label="Move design down">↓</button>
+        <>
+          {/* Dim backdrop for the mobile bottom-sheet; a no-op on desktop. */}
+          <div className="more-backdrop" onClick={() => setOpen(false)} />
+          <div className="more-popover" role="menu">
+            <div className="more-section">
+              <span className="more-heading">
+                <MoveIcon size={14} /> Move design
+              </span>
+              <div className="move-pad">
+                <button onClick={() => engine.shiftDesign(0, -1)} title="Move up" aria-label="Move design up">↑</button>
+                <button onClick={() => engine.shiftDesign(-1, 0)} title="Move left" aria-label="Move design left">←</button>
+                <button onClick={() => engine.shiftDesign(1, 0)} title="Move right" aria-label="Move design right">→</button>
+                <button onClick={() => engine.shiftDesign(0, 1)} title="Move down" aria-label="Move design down">↓</button>
+              </div>
+            </div>
+            <div className="more-section">
+              <button className="more-item" onClick={() => pick(onResize)}>Resize canvas…</button>
+              <button className="more-item" onClick={() => pick(onCrop)}>Crop to design…</button>
+              <button className="more-item" onClick={() => pick(onText)}>Add text…</button>
+            </div>
+            <div className="more-section">
+              <button className="more-item" onClick={() => pick(onExport)}>Export as .json</button>
+              <button className="more-item" onClick={() => pick(onImport)}>Import .json…</button>
+            </div>
+            <div className="more-section">
+              <button className="more-item" onClick={() => pick(onHelp)}>Help</button>
+              <button className="more-item" onClick={() => pick(onAbout)}>About</button>
             </div>
           </div>
-          <div className="more-section">
-            <button className="more-item" onClick={() => pick(onResize)}>Resize canvas…</button>
-            <button className="more-item" onClick={() => pick(onCrop)}>Crop to design…</button>
-            <button className="more-item" onClick={() => pick(onText)}>Add text…</button>
-          </div>
-        </div>
+        </>
       )}
     </div>
   );

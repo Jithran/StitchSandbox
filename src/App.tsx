@@ -152,8 +152,6 @@ export default function App(): React.ReactElement {
         </span>
         <div className="app-bar-actions">
           <AutosaveStatus snap={snap} />
-          <button onClick={() => setShowHelp(true)}>Help</button>
-          <button onClick={() => setShowAbout(true)}>About</button>
         </div>
       </header>
 
@@ -171,6 +169,8 @@ export default function App(): React.ReactElement {
         onResize={() => setShowResize(true)}
         onCrop={() => setShowCrop(true)}
         onText={() => setShowText(true)}
+        onHelp={() => setShowHelp(true)}
+        onAbout={() => setShowAbout(true)}
       />
 
       <div className="workspace">
