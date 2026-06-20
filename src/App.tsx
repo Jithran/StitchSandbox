@@ -28,6 +28,8 @@ const TOOL_KEYS: Record<string, ToolType> = {
   '3': ToolType.Quarter,
   '4': ToolType.Backstitch,
   e: ToolType.Eraser,
+  i: ToolType.Picker,
+  r: ToolType.Replace,
   h: ToolType.Pan,
   s: ToolType.Select,
 };

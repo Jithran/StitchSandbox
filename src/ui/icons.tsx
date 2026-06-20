@@ -31,6 +31,25 @@ export function EraserIcon(p: IconProps): React.ReactElement {
   );
 }
 
+export function EyedropperIcon(p: IconProps): React.ReactElement {
+  return (
+    <Svg {...p}>
+      <path d="m12 9 7-7 3 3-7 7" />
+      <path d="m14 11-9 9H2v-3l9-9" />
+      <path d="m17 7-3-3" />
+    </Svg>
+  );
+}
+
+export function ReplaceIcon(p: IconProps): React.ReactElement {
+  return (
+    <Svg {...p}>
+      <path d="M3 8h13l-3-3" />
+      <path d="M21 16H8l3 3" />
+    </Svg>
+  );
+}
+
 export function PanIcon(p: IconProps): React.ReactElement {
   return (
     <Svg {...p}>

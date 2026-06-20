@@ -47,6 +47,10 @@ export function Palette({ engine, snap }: Props): React.ReactElement {
         <button onClick={() => setLibraryOpen(true)}>+ Color</button>
       </div>
 
+      {snap.replaceFrom && (
+        <p className="palette-replace-hint">Pick the color to replace it with.</p>
+      )}
+
       {palette.length === 0 ? (
         <button className="palette-cta" onClick={() => setLibraryOpen(true)}>
           <span className="palette-cta-icon">+</span>

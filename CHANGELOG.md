@@ -6,6 +6,34 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-20
+
+### Added
+- Color picker (eyedropper) tool (shortcut **I**) — click a stitch on the canvas
+  to adopt its color, then it jumps straight back to your last stitch tool.
+- Replace color tool (shortcut **R**) — click the color to replace on the canvas,
+  then pick its replacement in the palette. It replaces within the current
+  selection, or across the whole design when nothing is selected.
+- On desktop the **right mouse button** now erases without switching tools, so you
+  can make quick corrections while drawing. Right-clicking inside a selection still
+  opens the context menu.
+- The toolbar now shows the active drawing color, and the app bar shows an autosave
+  indicator so you can see your work is being kept.
+
+### Changed
+- Toolbar redesign with clearer icons and labels. Rarely used actions (move design,
+  resize, crop, add text) moved into a single **More** menu, and **Save** / **Open**
+  are now **Export** / **Import** to make clear they write and read files.
+- Removing a color from the palette is now safer: the ✕ only appears after you
+  select a swatch (hover on desktop, long-press on mobile), so a tap no longer
+  deletes a color by accident.
+- Picking a color while the eraser is active now returns you to your last stitch
+  tool, since choosing a color signals you want to draw again.
+
+### Removed
+- The three-quarter stitch tool (existing patterns that contain three-quarter
+  stitches still render and export correctly).
+
 ## [0.4.0] - 2026-06-20
 
 ### Added

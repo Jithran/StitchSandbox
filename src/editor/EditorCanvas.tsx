@@ -48,8 +48,21 @@ export function EditorCanvas({ engine, tool, pasting, onContextMenu }: Props): R
     };
 
     const onDown = (e: PointerEvent) => {
-      // Right button is reserved for the context menu — never draw/select with it.
-      if (e.button === 2) return;
+      // Right button: erase for quick corrections without switching tools.
+      // Inside an active selection it still opens the context menu instead.
+      if (e.button === 2) {
+        const [rx, ry] = xy(e);
+        if (engine.pointInSelection(rx, ry)) return;
+        e.preventDefault();
+        try {
+          canvas.setPointerCapture(e.pointerId);
+        } catch {
+          // Some browsers reject capture for certain pointer types; harmless.
+        }
+        pointers.set(e.pointerId, { x: rx, y: ry });
+        engine.pointerDownErase(rx, ry);
+        return;
+      }
       // Middle button would otherwise start the OS autoscroll, which makes
       // panning jump around.
       if (e.button === 1) e.preventDefault();

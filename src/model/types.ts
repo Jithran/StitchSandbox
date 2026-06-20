@@ -23,6 +23,8 @@ export enum ToolType {
   Quarter = 'quarter',
   Backstitch = 'backstitch',
   Eraser = 'eraser',
+  Picker = 'picker',
+  Replace = 'replace',
   Pan = 'pan',
   Select = 'select',
 }

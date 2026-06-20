@@ -26,7 +26,13 @@ export function HelpDialog({ onClose }: Props): React.ReactElement {
               for the half tool, choose the diagonal in the extra toolbar group.</li>
             <li><strong>Backstitch</strong> (4) — drag between grid points; snaps to half-cell nodes
               for corner-to-corner and edge-midpoint lines.</li>
-            <li><strong>Eraser</strong> (E), <strong>Select</strong> (S), <strong>Pan</strong> (H).</li>
+            <li><strong>Eraser</strong> (E), <strong>Select</strong> (S), <strong>Pan</strong> (H).
+              On desktop the <strong>right mouse button</strong> erases without switching tools.</li>
+            <li><strong>Color picker</strong> (I) — click a stitch to pick its color, then it jumps
+              straight back to your last stitch tool.</li>
+            <li><strong>Replace color</strong> (R) — click the color to replace on the canvas, then
+              pick its replacement in the palette. With a selection active it only replaces inside it,
+              otherwise across the whole design.</li>
           </ul>
 
           <h3>Navigating</h3>
@@ -48,17 +54,17 @@ export function HelpDialog({ onClose }: Props): React.ReactElement {
 
           <h3>Canvas</h3>
           <ul>
-            <li>Move the whole design with the arrow buttons.</li>
-            <li><strong>Resize…</strong> changes the canvas with a 9-point anchor; <strong>Crop…</strong>
+            <li>Open the <strong>More</strong> menu to move the whole design, resize, crop or add text.</li>
+            <li><strong>Resize</strong> changes the canvas with a 9-point anchor; <strong>Crop</strong>
               trims to the design with an optional border.</li>
-            <li><strong>Text…</strong> turns typed text into stitches; place it like a paste.</li>
+            <li><strong>Add text</strong> turns typed text into stitches; place it like a paste.</li>
           </ul>
 
           <h3>Export &amp; saving</h3>
           <ul>
-            <li><strong>Chart →</strong> exports a print-ready PDF (black-and-white symbols or color),
+            <li><strong>Chart</strong> exports a print-ready PDF (black-and-white symbols or color),
               with a legend and tiled A4 pages. It is Pattern Keeper compatible.</li>
-            <li><strong>Save</strong> / <strong>Open</strong> export and import the pattern as JSON.
+            <li><strong>Export</strong> / <strong>Import</strong> save and load the pattern as JSON.
               Your work also autosaves in the browser.</li>
           </ul>
         </div>

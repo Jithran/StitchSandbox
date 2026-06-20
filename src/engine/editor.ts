@@ -6,6 +6,7 @@ import {
   createDocument,
   inBounds,
   moveDesign,
+  parseCellKey,
   segmentsEqual,
   type NewDocumentOptions,
 } from '../model/document';
@@ -60,6 +61,7 @@ export interface EditorSnapshot {
   hasSelection: boolean;
   hasClipboard: boolean;
   isPasting: boolean;
+  replaceFrom: string | null;
 }
 
 type Listener = (snap: EditorSnapshot) => void;
@@ -85,14 +87,18 @@ export class EditorEngine {
   private rafId = 0;
 
   tool: ToolType = ToolType.Full;
-  /** Last drawing tool used, so we can return to it after the eraser/pan. */
+  /** Last drawing tool used, so we can return to it after the eraser/picker. */
   private lastStitchTool: ToolType = ToolType.Full;
+  /** Replace tool: the canvas color awaiting a replacement pick from the palette. */
+  private replaceFrom: string | null = null;
   activeColorCode: string | null = null;
   halfDiagonal: Diagonal = Diagonal.Slash;
   realistic = false;
   showGrid = true;
 
   private gesture = Gesture.None;
+  /** Right-mouse drag: erase regardless of the active tool. */
+  private rightErase = false;
   private spaceHeld = false;
   private panLast = { x: 0, y: 0 };
   private backstitchStart: { x: number; y: number } | null = null;
@@ -170,6 +176,7 @@ export class EditorEngine {
       hasSelection: this.selection !== null,
       hasClipboard: this.clipboard !== null,
       isPasting: this.pasting !== null,
+      replaceFrom: this.replaceFrom,
     };
   }
 
@@ -321,9 +328,11 @@ export class EditorEngine {
   setTool(tool: ToolType): void {
     this.tool = tool;
     if (isStitchTool(tool)) this.lastStitchTool = tool;
+    if (tool !== ToolType.Replace) this.replaceFrom = null;
     // The selection (and its dimming) belongs to the Select tool; leaving it
-    // should clear the overlay so it doesn't linger while drawing.
-    if (tool !== ToolType.Select && this.selection) {
+    // should clear the overlay so it doesn't linger while drawing. The Replace
+    // tool keeps it, because the selection scopes the replacement.
+    if (tool !== ToolType.Select && tool !== ToolType.Replace && this.selection) {
       this.selection = null;
       this.requestRender();
     }
@@ -331,11 +340,24 @@ export class EditorEngine {
   }
 
   setActiveColor(code: string): void {
+    // In replace mode a palette pick is the replacement target for the color
+    // that was tapped on the canvas — not a new drawing color.
+    if (this.tool === ToolType.Replace && this.replaceFrom) {
+      this.replaceColor(this.replaceFrom, code);
+      this.replaceFrom = null;
+    }
     this.activeColorCode = code;
     addPaletteColor(this.doc, code);
     // Picking a color signals intent to draw — leave the eraser and return to
     // the last stitch tool so you don't keep wiping while choosing a color.
     if (this.tool === ToolType.Eraser) this.tool = this.lastStitchTool;
+    this.emit();
+  }
+
+  /** Cancel a pending replace source (chosen on canvas, not yet replaced). */
+  cancelReplace(): void {
+    if (this.replaceFrom === null) return;
+    this.replaceFrom = null;
     this.emit();
   }
 
@@ -669,6 +691,26 @@ export class EditorEngine {
       return;
     }
 
+    if (this.tool === ToolType.Picker) {
+      const code = this.colorAt(px, py);
+      if (code) {
+        this.activeColorCode = code;
+        addPaletteColor(this.doc, code);
+        this.tool = this.lastStitchTool; // return to drawing with the picked color
+        this.emit();
+      }
+      return;
+    }
+
+    if (this.tool === ToolType.Replace) {
+      const code = this.colorAt(px, py);
+      if (code) {
+        this.replaceFrom = code;
+        this.emit();
+      }
+      return;
+    }
+
     if (this.tool === ToolType.Select) {
       const cell = this.cellAt(px, py);
       this.gesture = Gesture.Select;
@@ -680,6 +722,16 @@ export class EditorEngine {
     }
 
     this.gesture = Gesture.Draw;
+    this.history.push(clone(this.doc));
+    this.lastPainted = '';
+    this.paintAt(px, py);
+  }
+
+  /** Erase with the right mouse button without leaving the current tool. */
+  pointerDownErase(px: number, py: number): void {
+    if (this.pasting) return;
+    this.gesture = Gesture.Draw;
+    this.rightErase = true;
     this.history.push(clone(this.doc));
     this.lastPainted = '';
     this.paintAt(px, py);
@@ -729,6 +781,7 @@ export class EditorEngine {
     this.justSelected =
       this.gesture === Gesture.Select && this.selectMoved && this.selection !== null;
     this.gesture = Gesture.None;
+    this.rightErase = false;
     this.backstitchStart = null;
     this.backstitchEnd = null;
     this.selectStart = null;
@@ -754,6 +807,63 @@ export class EditorEngine {
       c1: Math.max(this.selectStart.c, cur.c) + 1,
       r1: Math.max(this.selectStart.r, cur.r) + 1,
     };
+    this.requestRender();
+  }
+
+  /** Color of the stitch (or nearest backstitch) under a screen point. */
+  private colorAt(px: number, py: number): string | null {
+    const c = this.view.screenToCell(px, py);
+    const col = Math.floor(c.x);
+    const row = Math.floor(c.y);
+    if (inBounds(this.doc, col, row)) {
+      const parts = this.doc.cells[cellKey(col, row)];
+      if (parts && parts.length) {
+        const corner = cornerFromFraction(c.x - col, c.y - row);
+        const hit = parts.find((p) => p.corner === corner) ?? parts[parts.length - 1];
+        return hit.colorCode;
+      }
+    }
+    let best: { d: number; code: string } | null = null;
+    for (const s of this.doc.backstitches) {
+      const d = distToSegment(c.x, c.y, s.x1, s.y1, s.x2, s.y2);
+      if (d < 0.25 && (!best || d < best.d)) best = { d, code: s.colorCode };
+    }
+    return best?.code ?? null;
+  }
+
+  /** Replace one color with another across the selection, or the whole design
+   *  when nothing is selected. Non-matching stitches are untouched. */
+  private replaceColor(from: string, to: string): void {
+    if (from === to) return;
+    const region = this.selection;
+    const before = clone(this.doc);
+    let changed = false;
+
+    for (const [key, parts] of Object.entries(this.doc.cells)) {
+      const [col, row] = parseCellKey(key);
+      if (region && !(col >= region.c0 && col < region.c1 && row >= region.r0 && row < region.r1)) {
+        continue;
+      }
+      let cellChanged = false;
+      const next = parts.map((p) => {
+        if (p.colorCode !== from) return p;
+        cellChanged = true;
+        return { ...p, colorCode: to };
+      });
+      if (cellChanged) {
+        this.doc.cells[key] = next;
+        changed = true;
+      }
+    }
+
+    for (const s of this.doc.backstitches) {
+      if (s.colorCode !== from) continue;
+      if (region && !segmentInRegion(s, region)) continue;
+      s.colorCode = to;
+      changed = true;
+    }
+
+    if (changed) this.history.push(before);
     this.requestRender();
   }
 
@@ -788,7 +898,7 @@ export class EditorEngine {
     if (key === this.lastPainted) return;
     this.lastPainted = key;
 
-    if (this.tool === ToolType.Eraser) {
+    if (this.rightErase || this.tool === ToolType.Eraser) {
       this.eraseAt(col, row, c.x, c.y);
       this.requestRender();
       return;
@@ -848,6 +958,24 @@ export class EditorEngine {
 
 function dist(ax: number, ay: number, bx: number, by: number): number {
   return Math.hypot(ax - bx, ay - by);
+}
+
+/** Shortest distance from a point to a line segment, in cell units. */
+function distToSegment(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len2 = dx * dx + dy * dy;
+  if (len2 === 0) return Math.hypot(px - x1, py - y1);
+  let t = ((px - x1) * dx + (py - y1) * dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+}
+
+/** A backstitch lies in the region when both endpoints fall within its node range. */
+function segmentInRegion(s: BackstitchSegment, r: Rect): boolean {
+  const inX = (x: number) => x >= r.c0 && x <= r.c1;
+  const inY = (y: number) => y >= r.r0 && y <= r.r1;
+  return inX(s.x1) && inY(s.y1) && inX(s.x2) && inY(s.y2);
 }
 
 function clampInt(value: number, min: number, max: number): number {

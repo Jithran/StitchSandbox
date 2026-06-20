@@ -8,6 +8,7 @@ import {
   CutIcon,
   EraserIcon,
   ExportIcon,
+  EyedropperIcon,
   FitIcon,
   ImportIcon,
   MirrorHIcon,
@@ -18,6 +19,7 @@ import {
   PanIcon,
   PasteIcon,
   RedoIcon,
+  ReplaceIcon,
   RotateCCWIcon,
   RotateCWIcon,
   SelectIcon,
@@ -45,6 +47,8 @@ const TOOLS: Array<{ tool: ToolType; label: ReactNode; title: string; key: strin
   { tool: ToolType.Quarter, label: '¼', title: 'Quarter stitch', key: '3' },
   { tool: ToolType.Backstitch, label: '╲', title: 'Backstitch', key: '4' },
   { tool: ToolType.Eraser, label: <EraserIcon />, title: 'Eraser', key: 'E' },
+  { tool: ToolType.Picker, label: <EyedropperIcon />, title: 'Pick color from canvas', key: 'I' },
+  { tool: ToolType.Replace, label: <ReplaceIcon />, title: 'Replace a color', key: 'R' },
   { tool: ToolType.Pan, label: <PanIcon />, title: 'Pan', key: 'H' },
   { tool: ToolType.Select, label: <SelectIcon />, title: 'Select (rectangle)', key: 'S' },
 ];
@@ -113,6 +117,27 @@ export function Toolbar({
           >
             \
           </button>
+        </div>
+      )}
+
+      {snap.tool === ToolType.Replace && (
+        <div className="toolbar-group replace-status" title="Replace a color">
+          {snap.replaceFrom ? (
+            <>
+              <span className="replace-from">
+                <span
+                  className="active-color-dot"
+                  style={{ background: colorHex(snap.replaceFrom) }}
+                />
+                {colorInfo(snap.replaceFrom).number}
+              </span>
+              <span className="replace-arrow">→ pick replacement</span>
+              <span className="replace-scope">{snap.hasSelection ? 'in selection' : 'whole design'}</span>
+              <button onClick={() => engine.cancelReplace()} title="Cancel">✕</button>
+            </>
+          ) : (
+            <span className="replace-hint">Click the color on the canvas to replace</span>
+          )}
         </div>
       )}
 
