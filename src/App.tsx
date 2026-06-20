@@ -33,7 +33,7 @@ const TOOL_KEYS: Record<string, ToolType> = {
 export default function App(): React.ReactElement {
   const { engine, snap } = useEditor();
   const [showNew, setShowNew] = useState(false);
-  const [confirmNew, setConfirmNew] = useState(false);
+  const [confirm, setConfirm] = useState<'new' | 'open' | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [showResize, setShowResize] = useState(false);
   const [showCrop, setShowCrop] = useState(false);
@@ -115,10 +115,15 @@ export default function App(): React.ReactElement {
   const doc = engine.getDocument();
   const size = physicalSize(doc);
 
-  const requestNew = () => {
-    const hasWork = Object.keys(doc.cells).length > 0 || doc.backstitches.length > 0;
-    if (hasWork) setConfirmNew(true);
-    else setShowNew(true);
+  const hasWork = Object.keys(doc.cells).length > 0 || doc.backstitches.length > 0;
+  const openFilePicker = () => fileInput.current?.click();
+
+  const requestNew = () => (hasWork ? setConfirm('new') : setShowNew(true));
+  const requestOpen = () => (hasWork ? setConfirm('open') : openFilePicker());
+  const proceed = (action: 'new' | 'open') => {
+    setConfirm(null);
+    if (action === 'new') setShowNew(true);
+    else openFilePicker();
   };
 
   return (
@@ -160,7 +165,7 @@ export default function App(): React.ReactElement {
         snap={snap}
         onNew={requestNew}
         onExport={() => exportToFile(engine.getDocument())}
-        onImport={() => fileInput.current?.click()}
+        onImport={requestOpen}
         onExportChart={() => setShowExport(true)}
         onResize={() => setShowResize(true)}
         onCrop={() => setShowCrop(true)}
@@ -189,34 +194,30 @@ export default function App(): React.ReactElement {
         />
       )}
 
-      {confirmNew && (
+      {confirm && (
         <ConfirmDialog
-          title="Start a new pattern?"
+          title={confirm === 'new' ? 'Start a new pattern?' : 'Open another pattern?'}
           message={
             <>
               Your current pattern <strong>{doc.name}</strong> isn't saved to a file. Autosave only
-              keeps the most recent pattern, so starting a new one will{' '}
-              <strong>permanently discard your current work</strong>. Save a copy first to keep it.
+              keeps the most recent pattern, so {confirm === 'new' ? 'starting a new one' : 'opening another'}{' '}
+              will <strong>permanently discard your current work</strong>. Save a copy first to keep it.
             </>
           }
-          onClose={() => setConfirmNew(false)}
+          onClose={() => setConfirm(null)}
           actions={[
-            { label: 'Cancel', variant: 'ghost', onClick: () => setConfirmNew(false) },
+            { label: 'Cancel', variant: 'ghost', onClick: () => setConfirm(null) },
             {
-              label: 'Discard & start new',
+              label: confirm === 'new' ? 'Discard & start new' : 'Discard & open',
               variant: 'danger',
-              onClick: () => {
-                setConfirmNew(false);
-                setShowNew(true);
-              },
+              onClick: () => proceed(confirm),
             },
             {
               label: 'Save a copy',
               variant: 'primary',
               onClick: () => {
                 exportToFile(engine.getDocument());
-                setConfirmNew(false);
-                setShowNew(true);
+                proceed(confirm);
               },
             },
           ]}
