@@ -6,6 +6,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-06-20
+
+### Added
+- An "Open the demo project" button in the project browser, shown when the demo
+  isn't in your library (e.g. after deleting all your projects).
+
+### Fixed
+- The "Reload" button on the update prompt now reliably loads the new version on
+  desktop (it falls back to a hard refresh if the service worker doesn't take
+  over).
+
 ## [0.7.2] - 2026-06-20
 
 ### Changed
