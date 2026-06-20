@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-06-20
+
+### Added
+- A second demo project — the Jantina Stitches logo — now sits next to the fox
+  for first-time visitors.
+
 ## [0.7.0] - 2026-06-20
 
 ### Added
