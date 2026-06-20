@@ -8,6 +8,7 @@ import { exportToFile, importFromFile } from './model/storage';
 import { ToolType } from './model/types';
 import { CropDialog, ResizeDialog } from './ui/CanvasDialogs';
 import { AboutDialog, HelpDialog } from './ui/InfoDialogs';
+import { InstallPrompt } from './ui/InstallPrompt';
 import { NewProjectDialog } from './ui/NewProjectDialog';
 import { Palette } from './ui/Palette';
 import { SelectionMenu } from './ui/SelectionMenu';
@@ -115,8 +116,27 @@ export default function App(): React.ReactElement {
   return (
     <div className="app">
       <header className="app-bar">
-        <strong>StitchSandbox</strong>
-        <span className="doc-name">{snap.name}</span>
+        <span className="brand">
+          <img className="brand-logo" src="/favicon.svg" alt="" width="26" height="26" />
+          <strong className="brand-name">
+            Stitch<span className="brand-accent">Sandbox</span>
+          </strong>
+        </span>
+        <input
+          className="doc-name"
+          value={snap.name}
+          size={Math.max(snap.name.length, 4)}
+          title="Rename pattern"
+          aria-label="Pattern name"
+          onChange={(e) => engine.setName(e.target.value)}
+          onFocus={(e) => e.target.select()}
+          onBlur={(e) => {
+            if (!e.target.value.trim()) engine.setName('Untitled');
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+          }}
+        />
         <span className="doc-meta">
           {doc.width}×{doc.height} · {doc.count}-count · {size.width.toFixed(1)}×
           {size.height.toFixed(1)} {doc.unit}
@@ -212,6 +232,8 @@ export default function App(): React.ReactElement {
 
       {showHelp && <HelpDialog onClose={() => setShowHelp(false)} />}
       {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
+
+      <InstallPrompt />
 
       <input
         ref={fileInput}

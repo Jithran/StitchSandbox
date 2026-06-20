@@ -721,3 +721,190 @@ label.inline {
 .app-bar-actions button:hover {
   background: #353b49;
 }
+
+/* ── App-bar brand (logo + wordmark) ───────────────────────────── */
+.app-bar .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.brand-logo {
+  display: block;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px #000, 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.brand-name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #f1f1f4;
+}
+.brand-accent {
+  color: #4f8cff;
+}
+
+/* ── Install (PWA) banner ──────────────────────────────────────── */
+.install-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 92vw;
+  padding: 12px 14px;
+  background: #23262e;
+  border: 1px solid #3a3f4b;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.install-logo {
+  border-radius: 7px;
+  flex-shrink: 0;
+}
+.install-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.install-text strong {
+  font-size: 14px;
+  color: #f1f1f4;
+}
+.install-text span {
+  font-size: 12px;
+  color: #9a9aa2;
+}
+.install-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 8px;
+}
+.install-actions button {
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.install-actions .ghost {
+  background: transparent;
+  color: #c3c3cb;
+  border-color: #44485400;
+}
+.install-actions .ghost:hover {
+  color: #fff;
+}
+.install-actions .primary {
+  background: #4f8cff;
+  color: #fff;
+}
+.install-actions .primary:hover {
+  background: #6a9dff;
+}
+@media (max-width: 760px) {
+  .install-banner {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    transform: none;
+    max-width: none;
+  }
+}
+.install-text .share-icon {
+  vertical-align: -2px;
+  margin: 0 1px;
+  color: #4f8cff;
+}
+
+/* ── Empty-palette call to action ──────────────────────────────── */
+.palette-cta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 22px 14px;
+  border: 2px dashed #4f8cff;
+  border-radius: 10px;
+  background: rgba(79, 140, 255, 0.06);
+  color: #e9e9ec;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.palette-cta:hover {
+  background: rgba(79, 140, 255, 0.13);
+  border-color: #6a9dff;
+}
+.palette-cta strong {
+  font-size: 15px;
+}
+.palette-cta-sub {
+  font-size: 12px;
+  color: #9a9aa2;
+  line-height: 1.4;
+  max-width: 150px;
+}
+.palette-cta-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  line-height: 1;
+  color: #fff;
+  background: #4f8cff;
+  border-radius: 50%;
+  animation: cta-pulse 2s ease-out infinite;
+}
+@keyframes cta-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 140, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 9px rgba(79, 140, 255, 0);
+  }
+}
+@media (max-width: 760px) {
+  .palette-cta {
+    flex-direction: row;
+    gap: 10px;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  .palette-cta-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 22px;
+  }
+  .palette-cta-sub {
+    display: none;
+  }
+}
+
+/* ── Editable pattern name in the app-bar ──────────────────────── */
+.app-bar input.doc-name {
+  font: inherit;
+  font-weight: 600;
+  color: #e9e9ec;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 2px 6px;
+  max-width: 260px;
+  cursor: text;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.app-bar input.doc-name:hover {
+  background: #2a2a30;
+}
+.app-bar input.doc-name:focus {
+  outline: none;
+  background: #1a1a1f;
+  border-color: #4f8cff;
+}

@@ -19,23 +19,32 @@ export function Palette({ engine, snap }: Props): React.ReactElement {
         <button onClick={() => setLibraryOpen(true)}>+ Color</button>
       </div>
 
-      <div className="palette-swatches">
-        {palette.length === 0 && <p className="palette-empty">Add colors to start.</p>}
-        {palette.map((code) => {
-          const info = colorInfo(code);
-          return (
-            <button
-              key={code}
-              className={`swatch ${snap.activeColorCode === code ? 'active' : ''}`}
-              style={{ background: colorHex(code) }}
-              title={`${info.brand} ${info.number}${info.name ? ` — ${info.name}` : ''}`}
-              onClick={() => engine.setActiveColor(code)}
-            >
-              <span className="swatch-code">{info.number}</span>
-            </button>
-          );
-        })}
-      </div>
+      {palette.length === 0 ? (
+        <button className="palette-cta" onClick={() => setLibraryOpen(true)}>
+          <span className="palette-cta-icon">+</span>
+          <strong>Add colors</strong>
+          <span className="palette-cta-sub">
+            Pick DMC, Anchor, Cosmo or custom colors to start designing.
+          </span>
+        </button>
+      ) : (
+        <div className="palette-swatches">
+          {palette.map((code) => {
+            const info = colorInfo(code);
+            return (
+              <button
+                key={code}
+                className={`swatch ${snap.activeColorCode === code ? 'active' : ''}`}
+                style={{ background: colorHex(code) }}
+                title={`${info.brand} ${info.number}${info.name ? ` — ${info.name}` : ''}`}
+                onClick={() => engine.setActiveColor(code)}
+              >
+                <span className="swatch-code">{info.number}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {libraryOpen && (
         <ColorLibrary onClose={() => setLibraryOpen(false)} onPick={(code) => engine.setActiveColor(code)} />

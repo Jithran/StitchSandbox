@@ -298,6 +298,12 @@ export class EditorEngine {
     this.emit();
   }
 
+  /** Rename the pattern. Not history-tracked; autosaves via the snapshot. */
+  setName(name: string): void {
+    this.doc.name = name;
+    this.emit();
+  }
+
   // --- tools / settings --------------------------------------------------
 
   setTool(tool: ToolType): void {

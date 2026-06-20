@@ -6,6 +6,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Installable as a Progressive Web App: a web app manifest and a service worker
+  (offline-capable, "Add to home screen" / "Install app"), with a first-time
+  in-app install banner — including an iOS Safari hint (Share → Add to Home
+  Screen) since iOS has no install event.
+- A new app icon and logo — a cross-stitch motif shown in the browser tab, on the
+  install icon, and in the app header (which now carries the StitchSandbox brand).
+
+### Changed
+- The pattern name in the header is now editable — click it to rename the pattern
+  at any time (it flows through to autosave and chart/file names).
+- An empty palette now shows a clear "Add colors" call-to-action that opens the
+  color library, so first-time users know where to start.
+
 ## [0.3.1] - 2026-06-20
 
 ### Added
