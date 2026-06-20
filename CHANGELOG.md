@@ -6,6 +6,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-06-20
+
+### Changed
+- Tidied the top bar, especially on mobile: Export, Import, Help and About now
+  live in the **More** menu, which opens as a bottom sheet on phones instead of
+  off-screen. The app bar no longer hides Help/About behind a long pattern name.
+
+### Fixed
+- The project browser reliably scrolls on mobile when you have many projects.
+
 ## [0.6.2] - 2026-06-20
 
 ### Fixed
