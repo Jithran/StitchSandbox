@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { DEMO_PROJECT } from '../data/demoProject';
 import { renderThumbnail } from '../export/thumbnail';
 import { EditorEngine, type EditorSnapshot } from '../engine/editor';
 import { createDocument, type NewDocumentOptions } from '../model/document';
@@ -79,7 +80,8 @@ export function useEditor(): { engine: EditorEngine; snap: EditorSnapshot; libra
         doc = id ? await loadProjectDoc(id) : null;
       }
       if (!id || !doc) {
-        doc = engine.getDocument();
+        // First-time visitor: seed the demo fox so they land on a finished design.
+        doc = structuredClone(DEMO_PROJECT);
         id = await createProject(doc, renderThumbnail(doc));
       }
       if (cancelled) return;
