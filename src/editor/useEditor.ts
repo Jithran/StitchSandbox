@@ -30,6 +30,8 @@ export interface Library {
   currentId: string | null;
   projects: ProjectMeta[];
   refresh: () => Promise<void>;
+  /** Save the open project now and refresh the list (call before showing the browser). */
+  prepare: () => Promise<void>;
   open: (id: string) => Promise<void>;
   create: (opts: NewDocumentOptions) => Promise<void>;
   importDoc: (doc: PatternDocument) => Promise<void>;
@@ -101,6 +103,11 @@ export function useEditor(): { engine: EditorEngine; snap: EditorSnapshot; libra
     }, 800);
     return () => clearTimeout(t);
   }, [snap, ready, engine]);
+
+  const prepare = useCallback(async () => {
+    await flush();
+    await refresh();
+  }, [flush, refresh]);
 
   const open = useCallback(
     async (id: string) => {
@@ -184,6 +191,7 @@ export function useEditor(): { engine: EditorEngine; snap: EditorSnapshot; libra
     currentId,
     projects,
     refresh,
+    prepare,
     open,
     create,
     importDoc,

@@ -260,18 +260,21 @@
 }
 .project-thumb {
   position: relative;
-  aspect-ratio: 1;
+  /* Fixed height (not aspect-ratio) so the image can never stretch the card —
+   * on mobile a percentage-height image could take its intrinsic size. */
+  height: 130px;
   width: 100%;
   padding: 0;
   border: none;
   background: #f4f4f6;
   display: grid;
   place-items: center;
+  overflow: hidden;
   cursor: pointer;
 }
 .project-thumb img {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
   image-rendering: pixelated;
 }
@@ -688,8 +691,7 @@
     gap: 8px;
   }
   .project-thumb {
-    aspect-ratio: auto;
-    height: 84px;
+    height: 92px;
   }
   .project-actions {
     padding: 6px 8px 8px;

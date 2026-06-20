@@ -161,7 +161,10 @@ export default function App(): React.ReactElement {
         engine={engine}
         snap={snap}
         onNew={() => setShowNew(true)}
-        onProjects={() => setShowBrowser(true)}
+        onProjects={() => {
+          setShowBrowser(true);
+          library.prepare();
+        }}
         onExport={() => exportToFile(engine.getDocument())}
         onImport={openFilePicker}
         onExportChart={() => setShowExport(true)}
