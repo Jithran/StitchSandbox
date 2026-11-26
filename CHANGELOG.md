@@ -6,6 +6,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-11-26
+
+### Security
+- Updated the bundled web server (nginx) to 1.30.8, which fixes several security vulnerabilities.
+
 ## [0.7.3] - 2026-06-20
 
 ### Added
