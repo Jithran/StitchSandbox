@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 # ── runtime stage: serve the static build with nginx ─────────────
-FROM nginx:1.27-alpine
+FROM nginx:1.30.8-alpine
 
 # Replace the default config with our non-root, port-8080 setup
 COPY nginx.conf /etc/nginx/nginx.conf
